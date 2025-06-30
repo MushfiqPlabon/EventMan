@@ -1,0 +1,28 @@
+# .gitignore
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+venv/
+env/
+*.env
+.idea/ # For PyCharm users
+.vscode/ # For VS Code users
+
+# Django
+db.sqlite3
+/media
+/staticfiles # The folder where collectstatic gathers files
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# OS generated files
+.DS_Store
+Thumbs.db

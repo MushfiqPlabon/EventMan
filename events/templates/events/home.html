@@ -1,0 +1,21 @@
+{# events/templates/events/home.html #}
+{% extends 'base.html' %} {# Extends the base template #}
+
+{% block title %}Home - Event Management System{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-4xl font-bold text-center mb-6 text-blue-600">
+        {{ message }}
+    </h1>
+    <p class="text-lg text-center text-gray-700">
+        This is the beginning of your Event Management System.
+    </p>
+    <p class="mt-4 text-center">
+        <a href="/admin/" class="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">Go to Admin Panel</a>
+    </p>
+    <p class="mt-6 text-center text-gray-500 text-sm">
+        This text should be styled by Tailwind CSS. If not, check your Tailwind setup!
+    </p>
+</div>
+{% endblock %}

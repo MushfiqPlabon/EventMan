@@ -1,0 +1,33 @@
+{# templates/base.html #}
+{% load static %} {# This line is important to load static files #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Event Management System{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}"> {# Link to your compiled Tailwind CSS #}
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <nav class="bg-blue-600 p-4 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold">EventHub</a>
+            <div>
+                <a href="/" class="px-3 py-2 rounded hover:bg-blue-700">Events</a>
+                <a href="/admin/" class="px-3 py-2 rounded hover:bg-blue-700">Admin</a>
+                {# Add more navigation links here later #}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-8 p-4">
+        {% block content %}
+        {# Content from child templates will go here #}
+        {% endblock %}
+    </main>
+
+    <footer class="mt-12 p-4 text-center text-gray-600 bg-white shadow-inner">
+        <p>&copy; 2024 Event Management System. All rights reserved.</p>
+    </footer>
+</body>
+</html>
