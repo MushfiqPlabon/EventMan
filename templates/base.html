@@ -1,33 +1,44 @@
-{# templates/base.html #}
-{% load static %} {# This line is important to load static files #}
+{% comment %} {# templates/base.html #} {% endcomment %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Event Management System{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/output.css' %}"> {# Link to your compiled Tailwind CSS #}
+    {% comment %} {# Link to your compiled Tailwind CSS #} {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
 </head>
-<body class="bg-gray-100 text-gray-900">
-    <nav class="bg-blue-600 p-4 text-white">
+{% comment %} {# Apply default background and text colors, and their dark variants #} {% endcomment %}
+<body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+    
+    <nav class="bg-blue-600 p-4 text-white dark:bg-blue-800 dark:text-gray-200">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold">EventHub</a>
-            <div>
-                <a href="/" class="px-3 py-2 rounded hover:bg-blue-700">Events</a>
-                <a href="/admin/" class="px-3 py-2 rounded hover:bg-blue-700">Admin</a>
-                {# Add more navigation links here later #}
+            <a href="{% url 'home' %}" class="text-2xl font-bold">EventHub</a>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'event_list' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Events</a>
+                <a href="{% url 'category_list' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Categories</a> {# Add this line #}
+                <a href="{% url 'participant_list' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Participants</a> {# Add this line #}
+                <a href="{% url 'admin:index' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Admin</a>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <span class="text-xl dark:hidden">☀️</span>
+                    <span class="hidden dark:inline-block text-xl">🌙</span>
+                </button>
             </div>
         </div>
     </nav>
 
     <main class="container mx-auto mt-8 p-4">
         {% block content %}
-        {# Content from child templates will go here #}
+        {% comment %} {# Content from child templates will go here #} {% endcomment %}
         {% endblock %}
     </main>
 
-    <footer class="mt-12 p-4 text-center text-gray-600 bg-white shadow-inner">
-        <p>&copy; 2024 Event Management System. All rights reserved.</p>
+    <footer class="mt-12 p-4 text-center text-gray-600 bg-white shadow-inner dark:bg-gray-800 dark:text-gray-400">
+        <p>&copy; {% now "Y" %} Event Management System. All rights reserved.</p>
     </footer>
+
+    {% comment %} {# Include your theme toggle JavaScript #} {% endcomment %}
+    <script src="{% static 'js/theme_toggle.js' %}"></script>
 </body>
 </html>
