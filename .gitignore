@@ -7,7 +7,6 @@ __pycache__/
 .Python/
 venv/
 env/
-*.env
 .idea/ # For PyCharm users
 .vscode/ # For VS Code users
 
