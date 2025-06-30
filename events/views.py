@@ -11,38 +11,83 @@ from django.urls import reverse_lazy # For redirecting after successful form sub
 from .models import Event, Participant, Category
 from .forms import EventForm, ParticipantForm, CategoryForm # Importing forms
 from django.db.models import Q, Sum, Count # For filtering and aggregating
-from django.utils import timezone
+from django.utils import timezone # Django's timezone utilities
+from datetime import date # For date-only comparisons
+
 
 # --- Home View ---
 def home(request):
-    upcoming_events = Event.objects.filter(date__gte=timezone.now().date()).order_by('date', 'time')[:5]
+    # Get upcoming 5 events in the project's local timezone
+    # Convert timezone.now() to a date for comparison with Event.date
+    upcoming_events = Event.objects.filter(
+        Q(date__gt=timezone.localdate()) |
+        Q(date=timezone.localdate(), time__gte=timezone.localtime(timezone.now()).time())
+    ).order_by('date', 'time')[:5].select_related('category') # Optimize by selecting category
+
     # Aggregate query: Calculate total participants across all events
-    total_participants = Participant.objects.count() # This counts unique participant records
-    # If you wanted total registrations for events (where one participant might register for multiple events),
-    # you would do: Event.objects.aggregate(total_regs=Sum('participants__id'))['total_regs'] or similar,
-    # but counting unique participant entries is usually what's meant by "total participants".
+    total_participants = Participant.objects.aggregate(total=Count('id', distinct=True))['total'] or 0
 
     return render(request, 'events/home.html', {
         'message': 'Welcome to the Event Management System!',
         'upcoming_events': upcoming_events,
-        'total_participants_overall': total_participants, # Pass to context
+        'total_participants_overall': total_participants,
     })
 
+
 # --- Event CRUD Views ---
+
+class DashboardView(ListView):
+    template_name = 'events/dashboard.html'
+    context_object_name = 'today_events'
+
+    def get_queryset(self):
+        # This queryset will only fetch today's events for the table
+        today = timezone.localdate() # Get today's date in the project's current timezone
+        # Add select_related for category to avoid N+1 queries in the today_events table
+        queryset = Event.objects.filter(date=today).select_related('category').order_by('time')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate() # Get today's date in the project's current timezone
+        now_time = timezone.localtime(timezone.now()).time() # Get current time in project's timezone
+
+        # --- Optimized Calculations for Dashboard Stats ---
+        context['total_events'] = Event.objects.count()
+
+        # Count distinct participants across all registrations
+        context['total_participants'] = Participant.objects.aggregate(total=Count('id', distinct=True))['total'] or 0
+
+        # Past Events: Events where date is before today, OR date is today AND time is before now_time
+        context['past_events'] = Event.objects.filter(
+            Q(date__lt=today) | Q(date=today, time__lt=now_time)
+        ).count()
+
+        # Upcoming Events: Events where date is after today, OR date is today AND time is from now_time onwards
+        context['upcoming_events'] = Event.objects.filter(
+            Q(date__gt=today) | Q(date=today, time__gte=now_time)
+        ).count()
+
+        context['current_date'] = today
+        context['current_time'] = now_time
+
+        return context
+
 
 class EventListView(ListView):
     model = Event
     template_name = 'events/event_list.html'
     context_object_name = 'events'
-    paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related('category').order_by('date', 'time')
+        queryset = super().get_queryset()
+
+        queryset = queryset.select_related('category')
 
         # --- Filtering by Category ---
-        category_id = self.request.GET.get('category')
-        if category_id:
-            queryset = queryset.filter(category__id=category_id)
+        category_name = self.request.GET.get('category')
+        if category_name:
+            queryset = queryset.filter(category__name=category_name)
 
         # --- Filtering by Date Range ---
         start_date_str = self.request.GET.get('start_date')
@@ -50,15 +95,14 @@ class EventListView(ListView):
 
         if start_date_str:
             try:
-                start_date = timezone.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                start_date = date.fromisoformat(start_date_str)
                 queryset = queryset.filter(date__gte=start_date)
             except ValueError:
-                # Handle invalid date format if necessary, e.g., pass an error message
-                pass
+                pass # Handle invalid date format silently or with a message
 
         if end_date_str:
             try:
-                end_date = timezone.datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                end_date = date.fromisoformat(end_date_str)
                 queryset = queryset.filter(date__lte=end_date)
             except ValueError:
                 pass
@@ -69,71 +113,44 @@ class EventListView(ListView):
             queryset = queryset.filter(
                 Q(name__icontains=search_query) | Q(location__icontains=search_query)
             )
+        queryset = queryset.annotate(participant_count=Count('participants'))
 
         return queryset
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all().order_by('name') # Pass all categories for filter dropdown
-        context['selected_category'] = self.request.GET.get('category', '') # To pre-select dropdown
-        context['start_date'] = self.request.GET.get('start_date', '')
-        context['end_date'] = self.request.GET.get('end_date', '')
-        context['search_query'] = self.request.GET.get('q', '')
-        return context
-
 class EventDetailView(DetailView):
-    """
-    Displays detailed information for a single event.
-    Optimized with prefetch_related to fetch related Participant data.
-    """
     model = Event
     template_name = 'events/event_detail.html'
     context_object_name = 'event'
 
     def get_queryset(self):
-        # Optimizing query: Use prefetch_related to fetch all associated Participants
-        # This avoids N+1 queries if you iterate through event.participants.all
-        queryset = super().get_queryset().prefetch_related('participants')
-        return queryset
+        return super().get_queryset().select_related('category').prefetch_related('participants')
 
 class EventCreateView(CreateView):
-    """
-    Handles the creation of a new event.
-    Uses EventForm.
-    """
-    model = Event
-    form_class = EventForm # Use the form we just created
-    template_name = 'events/event_form.html' # Re-use form template for create and update
-    success_url = reverse_lazy('event_list') # Redirect to event list after successful creation
-
-class EventUpdateView(UpdateView):
-    """
-    Handles the updating of an existing event.
-    Uses EventForm and pre-fills the form with existing data.
-    """
     model = Event
     form_class = EventForm
+    # fields = ['name', 'date', 'time', 'location', 'description', 'category'] # REMOVED: form_class takes precedence
     template_name = 'events/event_form.html'
-    context_object_name = 'event' # Passes the object to the template
-    success_url = reverse_lazy('event_list') # Redirect to event list after successful update
+    success_url = reverse_lazy('dashboard') # Redirect to dashboard after creation
+
+class EventUpdateView(UpdateView):
+    model = Event
+    form_class = EventForm
+    # fields = ['name', 'date', 'time', 'location', 'description', 'category'] # REMOVED: form_class takes precedence
+    template_name = 'events/event_form.html'
+    success_url = reverse_lazy('dashboard')
 
 class EventDeleteView(DeleteView):
-    """
-    Handles the deletion of an event.
-    Displays a confirmation page before deleting.
-    """
     model = Event
-    template_name = 'events/event_confirm_delete.html' # Dedicated confirm delete template
-    context_object_name = 'event' # Passes the object to the template
-    success_url = reverse_lazy('event_list') # Redirect to event list after successful deletion
+    template_name = 'events/event_confirm_delete.html'
+    context_object_name = 'event'
+    success_url = reverse_lazy('dashboard')
+
 
 # --- Category CRUD Views ---
-
 class CategoryListView(ListView):
     model = Category
     template_name = 'events/category_list.html'
     context_object_name = 'categories'
-    paginate_by = 10 # Optional
 
 class CategoryDetailView(DetailView):
     model = Category
@@ -143,14 +160,15 @@ class CategoryDetailView(DetailView):
 class CategoryCreateView(CreateView):
     model = Category
     form_class = CategoryForm
+    # fields = ['name'] # REMOVED: form_class takes precedence
     template_name = 'events/category_form.html'
     success_url = reverse_lazy('category_list')
 
 class CategoryUpdateView(UpdateView):
     model = Category
     form_class = CategoryForm
+    # fields = ['name'] # REMOVED: form_class takes precedence
     template_name = 'events/category_form.html'
-    context_object_name = 'category'
     success_url = reverse_lazy('category_list')
 
 class CategoryDeleteView(DeleteView):
@@ -161,35 +179,37 @@ class CategoryDeleteView(DeleteView):
 
 
 # --- Participant CRUD Views ---
-
 class ParticipantListView(ListView):
     model = Participant
     template_name = 'events/participant_list.html'
     context_object_name = 'participants'
-    paginate_by = 10 # Optional
+    paginate_by = 10
+
+    def get_queryset(self):
+        # Corrected from 'registered_events' to 'events'
+        return super().get_queryset().prefetch_related('events')
 
 class ParticipantDetailView(DetailView):
     model = Participant
     template_name = 'events/participant_detail.html'
     context_object_name = 'participant'
-    # Optional: If you want to show events a participant is linked to,
-    # you'd use prefetch_related('events') here, but this form currently
-    # doesn't manage the 'events' field. For simplicity, we'll omit it.
-    # def get_queryset(self):
-    #     return super().get_queryset().prefetch_related('events')
 
+    def get_queryset(self):
+        # Corrected from 'registered_events' to 'events'
+        return super().get_queryset().prefetch_related('events')
 
 class ParticipantCreateView(CreateView):
     model = Participant
     form_class = ParticipantForm
+    # fields = ['name', 'email', 'registered_events'] # REMOVED: form_class takes precedence and 'events' is excluded in form
     template_name = 'events/participant_form.html'
     success_url = reverse_lazy('participant_list')
 
 class ParticipantUpdateView(UpdateView):
     model = Participant
     form_class = ParticipantForm
+    # fields = ['name', 'email', 'registered_events'] # REMOVED: form_class takes precedence and 'events' is excluded in form
     template_name = 'events/participant_form.html'
-    context_object_name = 'participant'
     success_url = reverse_lazy('participant_list')
 
 class ParticipantDeleteView(DeleteView):
@@ -197,45 +217,3 @@ class ParticipantDeleteView(DeleteView):
     template_name = 'events/participant_confirm_delete.html'
     context_object_name = 'participant'
     success_url = reverse_lazy('participant_list')
-
-# --- Organizer Dashboard View ---
-class DashboardView(ListView):
-    template_name = 'events/dashboard.html'
-    context_object_name = 'today_events'
-
-    def get_queryset(self):
-        # Fetch events scheduled for today, ordered by time
-        today = timezone.localdate() # Get today's date in the current timezone
-        queryset = Event.objects.filter(date=today).order_by('time').select_related('category')
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        today = timezone.localdate() # Get today's date
-        now = timezone.now() # Get current datetime
-
-        # Calculate dashboard statistics
-        total_events = Event.objects.count()
-        total_participants = Participant.objects.count()
-
-        # Filter for past and upcoming events
-        past_events = Event.objects.filter(date__lt=today).count()
-        upcoming_events = Event.objects.filter(date__gt=today).count()
-        # For events whose date is today, check if their time has passed
-        events_today_past = Event.objects.filter(date=today, time__lt=now.time()).count()
-        events_today_upcoming = Event.objects.filter(date=today, time__gte=now.time()).count()
-
-        # Add today's events that are still upcoming to the upcoming count
-        # and today's events that are past to the past count
-        upcoming_events += events_today_upcoming
-        past_events += events_today_past
-
-        context['total_events'] = total_events
-        context['total_participants'] = total_participants
-        context['past_events'] = past_events
-        context['upcoming_events'] = upcoming_events
-        context['current_date'] = today # To display 'Today's Events'
-        context['current_time'] = now # To differentiate past/upcoming today
-
-        return context
