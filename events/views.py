@@ -10,7 +10,8 @@ from django.views.generic import (
 from django.urls import reverse_lazy # For redirecting after successful form submission
 from .models import Event, Participant, Category
 from .forms import EventForm, ParticipantForm, CategoryForm # Importing forms
-from django.db.models import Q, Sum # For filtering and aggregating
+from django.db.models import Q, Sum, Count # For filtering and aggregating
+from django.utils import timezone
 
 # --- Home View ---
 def home(request):
@@ -197,5 +198,44 @@ class ParticipantDeleteView(DeleteView):
     context_object_name = 'participant'
     success_url = reverse_lazy('participant_list')
 
-# Import timezone for the home view if not already there
-from django.utils import timezone
+# --- Organizer Dashboard View ---
+class DashboardView(ListView):
+    template_name = 'events/dashboard.html'
+    context_object_name = 'today_events'
+
+    def get_queryset(self):
+        # Fetch events scheduled for today, ordered by time
+        today = timezone.localdate() # Get today's date in the current timezone
+        queryset = Event.objects.filter(date=today).order_by('time').select_related('category')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        today = timezone.localdate() # Get today's date
+        now = timezone.now() # Get current datetime
+
+        # Calculate dashboard statistics
+        total_events = Event.objects.count()
+        total_participants = Participant.objects.count()
+
+        # Filter for past and upcoming events
+        past_events = Event.objects.filter(date__lt=today).count()
+        upcoming_events = Event.objects.filter(date__gt=today).count()
+        # For events whose date is today, check if their time has passed
+        events_today_past = Event.objects.filter(date=today, time__lt=now.time()).count()
+        events_today_upcoming = Event.objects.filter(date=today, time__gte=now.time()).count()
+
+        # Add today's events that are still upcoming to the upcoming count
+        # and today's events that are past to the past count
+        upcoming_events += events_today_upcoming
+        past_events += events_today_past
+
+        context['total_events'] = total_events
+        context['total_participants'] = total_participants
+        context['past_events'] = past_events
+        context['upcoming_events'] = upcoming_events
+        context['current_date'] = today # To display 'Today's Events'
+        context['current_time'] = now # To differentiate past/upcoming today
+
+        return context

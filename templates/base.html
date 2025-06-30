@@ -9,17 +9,16 @@
     {% comment %} {# Link to your compiled Tailwind CSS #} {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
 </head>
-{% comment %} {# Apply default background and text colors, and their dark variants #} {% endcomment %}
 <body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-    
     <nav class="bg-blue-600 p-4 text-white dark:bg-blue-800 dark:text-gray-200">
         <div class="container mx-auto flex justify-between items-center">
+            
             <a href="{% url 'home' %}" class="text-2xl font-bold">EventHub</a>
             <div class="flex items-center space-x-4">
                 <a href="{% url 'event_list' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Events</a>
-                <a href="{% url 'category_list' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Categories</a> {# Add this line #}
-                <a href="{% url 'participant_list' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Participants</a> {# Add this line #}
-                <a href="{% url 'admin:index' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Admin</a>
+                <a href="{% url 'category_list' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Categories</a>
+                <a href="{% url 'participant_list' %}" class="px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-900">Participants</a>
+                {# ... dark mode toggle ... #}
                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <span class="text-xl dark:hidden">☀️</span>
                     <span class="hidden dark:inline-block text-xl">🌙</span>
@@ -30,7 +29,7 @@
 
     <main class="container mx-auto mt-8 p-4">
         {% block content %}
-        {% comment %} {# Content from child templates will go here #} {% endcomment %}
+        {% comment %} Content from child templates will go here {% endcomment %}
         {% endblock %}
     </main>
 

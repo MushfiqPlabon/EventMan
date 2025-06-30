@@ -1,0 +1,105 @@
+{# events/templates/events/dashboard.html #}
+{% extends 'base.html' %}
+
+{% block title %}Organizer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">Organizer Dashboard</h1>
+
+    {# Stats Grid - NOW CLICKABLE! #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+
+        {# Total Events Link #}
+        <a href="{% url 'event_list' %}" class="block bg-blue-100 dark:bg-blue-900 p-6 rounded-lg shadow-md text-center cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-all duration-200">
+            <h2 class="text-xl font-semibold text-blue-800 dark:text-blue-200 mb-2">Total Events</h2>
+            <p class="text-5xl font-extrabold text-blue-900 dark:text-blue-100">{{ total_events }}</p>
+        </a>
+
+        {# Total Participants Link - This will just go to the full participant list for now #}
+        <a href="{% url 'participant_list' %}" class="block bg-green-100 dark:bg-green-900 p-6 rounded-lg shadow-md text-center cursor-pointer hover:bg-green-200 dark:hover:bg-green-800 transition-all duration-200">
+            <h2 class="text-xl font-semibold text-green-800 dark:text-green-200 mb-2">Total Participants</h2>
+            <p class="text-5xl font-extrabold text-green-900 dark:text-green-100">{{ total_participants }}</p>
+        </a>
+
+        {# Past Events Link #}
+        <a href="{% url 'event_list' %}?end_date={{ current_date|date:"Y-m-d" }}" class="block bg-red-100 dark:bg-red-900 p-6 rounded-lg shadow-md text-center cursor-pointer hover:bg-red-200 dark:hover:bg-red-800 transition-all duration-200">
+            <h2 class="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">Past Events</h2>
+            <p class="text-5xl font-extrabold text-red-900 dark:text-red-100">{{ past_events }}</p>
+        </a>
+
+        {# Upcoming Events Link #}
+        <a href="{% url 'event_list' %}?start_date={{ current_date|date:"Y-m-d" }}" class="block bg-purple-100 dark:bg-purple-900 p-6 rounded-lg shadow-md text-center cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-800 transition-all duration-200">
+            <h2 class="text-xl font-semibold text-purple-800 dark:text-purple-200 mb-2">Upcoming Events</h2>
+            <p class="text-5xl font-extrabold text-purple-900 dark:text-purple-100">{{ upcoming_events }}</p>
+        </a>
+    </div>
+
+    {# ... (rest of your dashboard.html, including Today's Events Listing) ... #}
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Today's Events ({{ current_date|date:"F j, Y" }})</h2>
+        <div class="flex justify-end mb-4">
+            {# Add a "View All Today's Events" link #}
+            <a href="{% url 'event_list' %}?start_date={{ current_date|date:"Y-m-d" }}&end_date={{ current_date|date:"Y-m-d" }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                View All Today's Events
+            </a>
+        </div>
+
+        {% if today_events %}
+            {# ... (your existing table for today's events) ... #}
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white dark:bg-gray-700 rounded-lg shadow-inner">
+                    <thead>
+                        <tr class="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left">Event Name</th>
+                            <th class="py-3 px-6 text-left">Time</th>
+                            <th class="py-3 px-6 text-left">Location</th>
+                            <th class="py-3 px-6 text-left">Category</th>
+                            <th class="py-3 px-6 text-center">Participants</th>
+                            <th class="py-3 px-6 text-center">Status</th>
+                            <th class="py-3 px-6 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700 dark:text-gray-300 text-sm font-light">
+                        {% for event in today_events %}
+                        <tr class="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <td class="py-3 px-6 text-left whitespace-nowrap">
+                                <a href="{% url 'event_detail' event.pk %}" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">{{ event.name }}</a>
+                            </td>
+                            <td class="py-3 px-6 text-left">
+                                {{ event.time|time:"h:i A" }}
+                            </td>
+                            <td class="py-3 px-6 text-left">
+                                {{ event.location }}
+                            </td>
+                            <td class="py-3 px-6 text-left">
+                                {{ event.category.name|default:"N/A" }}
+                            </td>
+                            <td class="py-3 px-6 text-center">
+                                {{ event.participants.count }}
+                            </td>
+                            <td class="py-3 px-6 text-center">
+                                {% if event.date == current_date and event.time < current_time.time %}
+                                    <span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:bg-red-700 dark:text-red-100">Past</span>
+                                {% else %}
+                                    <span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">Upcoming</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-6 text-center">
+                                <div class="flex item-center justify-center space-x-2">
+                                    <a href="{% url 'event_detail' event.pk %}" class="w-8 h-8 flex items-center justify-center rounded-full text-blue-600 hover:bg-blue-200 dark:text-blue-400 dark:hover:bg-blue-900" title="View">👁️</a>
+                                    <a href="{% url 'event_update' event.pk %}" class="w-8 h-8 flex items-center justify-center rounded-full text-yellow-600 hover:bg-yellow-200 dark:text-yellow-400 dark:hover:bg-yellow-900" title="Edit">✏️</a>
+                                    <a href="{% url 'event_delete' event.pk %}" class="w-8 h-8 flex items-center justify-center rounded-full text-red-600 hover:bg-red-200 dark:text-red-400 dark:hover:bg-red-900" title="Delete">🗑️</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-700 dark:text-gray-300 text-center text-lg">No events scheduled for today.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
