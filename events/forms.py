@@ -9,7 +9,7 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ['name', 'description'] # Fields from the Category model to include in the form
-        # Optional: Add widgets for better control over form fields' HTML attributes
+        # Adding widgets for better control over form fields' HTML attributes
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-200 focus:ring-blue-500 focus:border-blue-500', 'placeholder': 'Enter category name'}),
             'description': forms.Textarea(attrs={'class': 'form-textarea block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-200 focus:ring-blue-500 focus:border-blue-500', 'rows': 3, 'placeholder': 'Describe the category'}),
@@ -53,8 +53,6 @@ class ParticipantForm(forms.ModelForm):
     """
     class Meta:
         model = Participant
-        # We're excluding 'events' from this form for now, as it's better managed
-        # when adding participants to an existing event.
         fields = ['name', 'email']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-200 focus:ring-blue-500 focus:border-blue-500', 'placeholder': 'Participant Name'}),
