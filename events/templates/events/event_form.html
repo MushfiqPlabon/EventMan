@@ -1,5 +1,5 @@
-{# events/templates/events/event_form.html #}
 {% extends 'base.html' %}
+{% comment %} events/templates/events/event_form.html {% endcomment %}
 
 {% block title %}
     {% if form.instance.pk %}Edit Event{% else %}Create New Event{% endif %}
@@ -29,7 +29,7 @@
             </div>
         {% endfor %}
 
-        {# Non-field errors (e.g., if a form's clean() method raises an error) #}
+        {% comment %} Non-field errors {% endcomment %}
         {% if form.non_field_errors %}
             <div class="mb-4 p-3 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded-md">
                 {% for error in form.non_field_errors %}

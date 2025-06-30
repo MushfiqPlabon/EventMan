@@ -1,5 +1,5 @@
-{# events/templates/events/event_list.html #}
 {% extends 'base.html' %}
+{% comment %} events/templates/events/event_list.html {% endcomment %}
 
 {% block title %}All Events{% endblock %}
 
@@ -7,7 +7,7 @@
 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">All Events</h1>
 
-    {# Filter and Search Form #}
+    {% comment %} Filter and Search Form {% endcomment %}
     <form method="get" class="mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-md shadow-inner grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <div>
             <label for="id_category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category:</label>
@@ -55,8 +55,6 @@
         </a>
     </div>
 
-    {# ... (rest of your existing event table) ... #}
-
     {% if events %}
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white dark:bg-gray-700 rounded-lg shadow-inner">
@@ -66,7 +64,7 @@
                         <th class="py-3 px-6 text-left">Date & Time</th>
                         <th class="py-3 px-6 text-left">Location</th>
                         <th class="py-3 px-6 text-left">Category</th>
-                        <th class="py-3 px-6 text-center">Participants</th> {# This column is ready now #}
+                        <th class="py-3 px-6 text-center">Participants</th>
                         <th class="py-3 px-6 text-center">Actions</th>
                     </tr>
                 </thead>
@@ -100,9 +98,7 @@
                 </tbody>
             </table>
         </div>
-
-        {# ... (pagination code, if any) ... #}
-
+        
     {% else %}
         <p class="text-gray-700 dark:text-gray-300 text-center text-lg">No events found matching your criteria. Start by adding a new one!</p>
     {% endif %}

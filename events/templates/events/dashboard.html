@@ -1,5 +1,5 @@
-{# events/templates/events/dashboard.html #}
 {% extends 'base.html' %}
+{% comment %} events/templates/events/dashboard.html {% endcomment %}
 
 {% block title %}Organizer Dashboard{% endblock %}
 
@@ -7,46 +7,46 @@
 <div class="container mx-auto p-6">
     <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">Organizer Dashboard</h1>
 
-    {# Stats Grid - NOW CLICKABLE! #}
+    {% comment %} Clickable Stats Grid {% endcomment %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
-        {# Total Events Link #}
+        {% comment %} Total Events Link {% endcomment %}
         <a href="{% url 'event_list' %}" class="block bg-blue-100 dark:bg-blue-900 p-6 rounded-lg shadow-md text-center cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-all duration-200">
             <h2 class="text-xl font-semibold text-blue-800 dark:text-blue-200 mb-2">Total Events</h2>
             <p class="text-5xl font-extrabold text-blue-900 dark:text-blue-100">{{ total_events }}</p>
         </a>
 
-        {# Total Participants Link - This will just go to the full participant list for now #}
+        {% comment %} Total Participants Link - This will just go to the full participant list {% endcomment %}
         <a href="{% url 'participant_list' %}" class="block bg-green-100 dark:bg-green-900 p-6 rounded-lg shadow-md text-center cursor-pointer hover:bg-green-200 dark:hover:bg-green-800 transition-all duration-200">
             <h2 class="text-xl font-semibold text-green-800 dark:text-green-200 mb-2">Total Participants</h2>
             <p class="text-5xl font-extrabold text-green-900 dark:text-green-100">{{ total_participants }}</p>
         </a>
 
-        {# Past Events Link #}
+        {% comment %} Past Events Link {% endcomment %}
         <a href="{% url 'event_list' %}?end_date={{ current_date|date:"Y-m-d" }}" class="block bg-red-100 dark:bg-red-900 p-6 rounded-lg shadow-md text-center cursor-pointer hover:bg-red-200 dark:hover:bg-red-800 transition-all duration-200">
             <h2 class="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">Past Events</h2>
             <p class="text-5xl font-extrabold text-red-900 dark:text-red-100">{{ past_events }}</p>
         </a>
 
-        {# Upcoming Events Link #}
+        {% comment %} Upcoming Events Link {% endcomment %}
         <a href="{% url 'event_list' %}?start_date={{ current_date|date:"Y-m-d" }}" class="block bg-purple-100 dark:bg-purple-900 p-6 rounded-lg shadow-md text-center cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-800 transition-all duration-200">
             <h2 class="text-xl font-semibold text-purple-800 dark:text-purple-200 mb-2">Upcoming Events</h2>
             <p class="text-5xl font-extrabold text-purple-900 dark:text-purple-100">{{ upcoming_events }}</p>
         </a>
     </div>
 
-    {# ... (rest of your dashboard.html, including Today's Events Listing) ... #}
+    {% comment %} Today's Events Listing {% endcomment %}
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
         <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Today's Events ({{ current_date|date:"F j, Y" }})</h2>
         <div class="flex justify-end mb-4">
-            {# Add a "View All Today's Events" link #}
+            {% comment %} "View All Today's Events" link {% endcomment %}
             <a href="{% url 'event_list' %}?start_date={{ current_date|date:"Y-m-d" }}&end_date={{ current_date|date:"Y-m-d" }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
                 View All Today's Events
             </a>
         </div>
 
         {% if today_events %}
-            {# ... (your existing table for today's events) ... #}
+            {% comment %} your existing table for today's events {% endcomment %}
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-white dark:bg-gray-700 rounded-lg shadow-inner">
                     <thead>

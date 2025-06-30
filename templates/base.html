@@ -1,12 +1,12 @@
-{% comment %} {# templates/base.html #} {% endcomment %}
 {% load static %}
+{% comment %}templates/base.html{% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Event Management System{% endblock %}</title>
-    {% comment %} {# Link to your compiled Tailwind CSS #} {% endcomment %}
+    {% comment %} {# Link to compiled Tailwind CSS #} {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
 </head>
 <body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
@@ -37,7 +37,7 @@
         <p>&copy; {% now "Y" %} Event Management System. All rights reserved.</p>
     </footer>
 
-    {% comment %} {# Include your theme toggle JavaScript #} {% endcomment %}
+    {% comment %} theme toggle JavaScript {% endcomment %}
     <script src="{% static 'js/theme_toggle.js' %}"></script>
 </body>
 </html>

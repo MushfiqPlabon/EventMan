@@ -1,5 +1,5 @@
-{# events/templates/events/category_list.html #}
 {% extends 'base.html' %}
+{% comment %} events/templates/events/category_list.html  {% endcomment %}
 
 {% block title %}All Categories{% endblock %}
 
@@ -44,22 +44,7 @@
                 </tbody>
             </table>
         </div>
-
-        {% comment %} Pagination (if you implement it in the view) {% endcomment %}
-        {% if is_paginated %}
-            <div class="flex justify-center mt-6">
-                {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-l-md hover:bg-gray-300 dark:hover:bg-gray-600">Previous</a>
-                {% endif %}
-                <span class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300">
-                    Page {{ page_obj.number }} of {{ page_obj.num_pages }}
-                </span>
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-r-md hover:bg-gray-300 dark:hover:bg-gray-600">Next</a>
-                {% endif %}
-            </div>
-        {% endif %}
-
+        
     {% else %}
         <p class="text-gray-700 dark:text-gray-300 text-center text-lg">No categories found. Start by adding a new one!</p>
     {% endif %}
