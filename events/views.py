@@ -128,14 +128,12 @@ class EventDetailView(DetailView):
 class EventCreateView(CreateView):
     model = Event
     form_class = EventForm
-    # fields = ['name', 'date', 'time', 'location', 'description', 'category'] # REMOVED: form_class takes precedence
     template_name = 'events/event_form.html'
     success_url = reverse_lazy('dashboard') # Redirect to dashboard after creation
 
 class EventUpdateView(UpdateView):
     model = Event
     form_class = EventForm
-    # fields = ['name', 'date', 'time', 'location', 'description', 'category'] # REMOVED: form_class takes precedence
     template_name = 'events/event_form.html'
     success_url = reverse_lazy('dashboard')
 
@@ -160,14 +158,12 @@ class CategoryDetailView(DetailView):
 class CategoryCreateView(CreateView):
     model = Category
     form_class = CategoryForm
-    # fields = ['name'] # REMOVED: form_class takes precedence
     template_name = 'events/category_form.html'
     success_url = reverse_lazy('category_list')
 
 class CategoryUpdateView(UpdateView):
     model = Category
     form_class = CategoryForm
-    # fields = ['name'] # REMOVED: form_class takes precedence
     template_name = 'events/category_form.html'
     success_url = reverse_lazy('category_list')
 
@@ -186,7 +182,6 @@ class ParticipantListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # Corrected from 'registered_events' to 'events'
         return super().get_queryset().prefetch_related('events')
 
 class ParticipantDetailView(DetailView):
@@ -195,20 +190,17 @@ class ParticipantDetailView(DetailView):
     context_object_name = 'participant'
 
     def get_queryset(self):
-        # Corrected from 'registered_events' to 'events'
         return super().get_queryset().prefetch_related('events')
 
 class ParticipantCreateView(CreateView):
     model = Participant
     form_class = ParticipantForm
-    # fields = ['name', 'email', 'registered_events'] # REMOVED: form_class takes precedence and 'events' is excluded in form
     template_name = 'events/participant_form.html'
     success_url = reverse_lazy('participant_list')
 
 class ParticipantUpdateView(UpdateView):
     model = Participant
     form_class = ParticipantForm
-    # fields = ['name', 'email', 'registered_events'] # REMOVED: form_class takes precedence and 'events' is excluded in form
     template_name = 'events/participant_form.html'
     success_url = reverse_lazy('participant_list')
 
