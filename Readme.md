@@ -9,6 +9,7 @@ The application allows organizers to efficiently manage events, categories, and 
 ### Live Demo
 
 Experience EventMan in action: [https://eventman-phi-assign.onrender.com/](https://eventman-phi-assign.onrender.com/)
+It may take a while for the page to load due to it being on free hosting.
 
 ## Features
 
