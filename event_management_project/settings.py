@@ -149,3 +149,27 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Media files configuration (for uploaded event images)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Email Configuration (for account activation and RSVP notifications)
+# For development, 'console' backend is used to print emails to the console.
+# For production, proper SMTP server will be configured.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # For production
+# EMAIL_HOST = 'smtp.sendgrid.net'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your_username'
+# EMAIL_HOST_PASSWORD = 'your_password'
+# DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com' # Email address that sends the emails
+
+# Authentication URLs
+LOGIN_URL = 'login' # Name of your login URL
+LOGIN_REDIRECT_URL = 'dashboard' # Redirect authenticated users to the dashboard
+LOGOUT_REDIRECT_URL = 'home' # Redirect after logout to the home page
+
+# Custom User model (if needed)
+AUTH_USER_MODEL = 'auth.User'

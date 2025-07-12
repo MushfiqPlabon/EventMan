@@ -1,6 +1,6 @@
 # events/forms.py
 from django import forms
-from .models import Category, Event, Participant
+from .models import Category, Event
 
 # Define common CSS classes as constants
 # This makes it easy to change them in one place if your design evolves
@@ -68,11 +68,3 @@ class EventForm(BaseForm): # Inherit from BaseForm
             'location': 'Location',
             'category': 'Category'
         }
-
-class ParticipantForm(BaseForm): # Inherit from BaseForm
-    """
-    Form for creating and updating Participant objects.
-    """
-    class Meta:
-        model = Participant
-        fields = ['name', 'email']

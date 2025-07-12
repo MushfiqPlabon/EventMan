@@ -1,9 +1,14 @@
 # events/urls.py
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
+    # Base URL for the dashboard/home
     path('', views.DashboardView.as_view(), name='home'),
+    path('dashboard/', views.DashboardView.as_view(), name='dashboard'), # Added for clarity
+
     # Event URLs
     path('events/', views.EventListView.as_view(), name='event_list'),
     path('events/new/', views.EventCreateView.as_view(), name='event_create'),
@@ -18,10 +23,4 @@ urlpatterns = [
     path('categories/<int:pk>/edit/', views.CategoryUpdateView.as_view(), name='category_update'),
     path('categories/<int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category_delete'),
 
-    # Participant URLs
-    path('participants/', views.ParticipantListView.as_view(), name='participant_list'),
-    path('participants/new/', views.ParticipantCreateView.as_view(), name='participant_create'),
-    path('participants/<int:pk>/', views.ParticipantDetailView.as_view(), name='participant_detail'),
-    path('participants/<int:pk>/edit/', views.ParticipantUpdateView.as_view(), name='participant_update'),
-    path('participants/<int:pk>/delete/', views.ParticipantDeleteView.as_view(), name='participant_delete')
-]
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
