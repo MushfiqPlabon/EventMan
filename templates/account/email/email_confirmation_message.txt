@@ -1,0 +1,15 @@
+{% load account %}
+{% user_display user as user_display %}
+{% load i18n %}
+
+{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}Hello from {{ site_name }}!
+
+You're receiving this e-mail because you or someone else has requested to verify your e-mail address at {{ site_name }}.
+
+To complete the verification process for {{ user_display }}, please click the following link:
+
+{{ activate_url }}
+
+Thank you for using {{ site_name }}!
+
+The {{ site_name }} Team{% endblocktrans %}

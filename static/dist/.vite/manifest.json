@@ -1,0 +1,16 @@
+{
+  "static/src/input.css": {
+    "file": "main_css.css",
+    "src": "static/src/input.css",
+    "isEntry": true,
+    "names": [
+      "main_css.css"
+    ]
+  },
+  "static/src/js/toggle.js": {
+    "file": "toggle_js.js",
+    "name": "toggle_js",
+    "src": "static/src/js/toggle.js",
+    "isEntry": true
+  }
+}

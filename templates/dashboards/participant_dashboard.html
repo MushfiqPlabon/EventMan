@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Participant Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-6">{% trans "Participant Dashboard" %}</h1>
+    <p class="text-gray-700 dark:text-gray-300 mb-6">Welcome, {{ user.first_name|default:user.email }}! Here you can view events you have RSVP'd to.</p>
+
+    <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">My RSVP'd Events</h2>
+    {% if rsvp_events %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for event in rsvp_events %}
+                <div class="bg-gray-100 dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
+                    {% if event.image %}
+                        <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
+                    {% endif %}
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{{ event.name }}</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
+                            <span class="font-medium">Date:</span> {{ event.date|date:"M d, Y" }}
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
+                            <span class="font-medium">Time:</span> {{ event.time|time:"P" }}
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
+                            <span class="font-medium">Location:</span> {{ event.location }}
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                            <span class="font-medium">Category:</span> {{ event.category.name|default:"N/A" }}
+                        </p>
+                        <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">{{ event.description|truncatewords:20 }}</p>
+                        <a href="{% url 'event_detail' event.pk %}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md transition duration-300">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-gray-700 dark:text-gray-300 text-center">You have not RSVP'd to any events yet.</p>
+        <div class="mt-6 text-center">
+            <a href="{% url 'event_list' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                Browse Events
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
