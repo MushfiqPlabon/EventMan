@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSVP Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
+        h1 { color: #0056b3; }
+        .button { display: inline-block; background-color: #007bff; color: #ffffff !important; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        .footer { margin-top: 20px; font-size: 0.9em; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RSVP Confirmation</h1>
+        <p>Hello {{ user.first_name|default:user.email }},</p>
+        <p>This is to confirm that you have successfully RSVP'd to the following event:</p>
+        <p><strong>Event Name:</strong> {{ event.name }}</p>
+        <p><strong>Date:</strong> {{ event.date|date:"M d, Y" }}</p>
+        <p><strong>Time:</strong> {{ event.time|time:"P" }}</p>
+        <p><strong>Location:</strong> {{ event.location }}</p>
+        <p>We look forward to seeing you there!</p>
+        <p>You can view event details here: <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'event_detail' event.pk %}" class="button">View Event Details</a></p>
+        <div class="footer">
+            <p>Thank you,</p>
+            <p>The EventMan Team 🎟️</p>
+        </div>
+    </div>
+</body>
+</html>

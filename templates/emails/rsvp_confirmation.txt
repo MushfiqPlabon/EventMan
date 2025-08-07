@@ -1,0 +1,15 @@
+Hello {{ user.first_name|default:user.email }},
+
+This is to confirm that you have successfully RSVP'd to the following event:
+
+Event Name: {{ event.name }}
+Date: {{ event.date|date:"M d, Y" }}
+Time: {{ event.time|time:"P" }}
+Location: {{ event.location }}
+
+🎉 We look forward to seeing you there!
+
+You can view event details here: {{ request.scheme }}://{{ request.get_host }}{% url 'event_detail' event.pk %}
+
+Thank you,
+The EventMan Team

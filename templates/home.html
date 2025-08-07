@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Event Management System{% endblock %}
+
+{% block content %}
+<div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <h1 class="text-3xl sm:text-5xl font-extrabold text-blue-600 dark:text-blue-400 mb-4
+               text-shadow-lg dark:text-shadow-cyan-500/50"> {# Responsive font size & v4.1 text-shadow #}
+        Welcome to EventMan!
+    </h1>
+    <p class="text-xl text-gray-700 dark:text-gray-300 mb-6">
+        Your ultimate solution for managing events with ease.
+    </p>
+    <p class="text-lg text-gray-600 dark:text-gray-300">
+        Explore upcoming events, manage your categories, and connect with participants.
+    </p>
+    <div class="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <a href="{% url 'event_list' %}" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+            Browse Events
+        </a>
+        <a href="#" class="w-full sm:w-auto bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+            Learn More 📚
+        </a>
+    </div>
+</div>
+{% endblock %}

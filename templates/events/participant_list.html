@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Participant List{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-6">All Participants</h1>
+
+    {% if participants %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white dark:bg-gray-700 rounded-lg shadow-inner">
+                <thead>
+                    <tr class="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Username</th>
+                        <th class="py-3 px-6 text-left">Email</th>
+                        <th class="py-3 px-6 text-left">First Name</th>
+                        <th class="py-3 px-6 text-left">Last Name</th>
+                        <th class="py-3 px-6 text-left">Groups</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700 dark:text-gray-300 text-sm font-light">
+                    {% for participant in participants %}
+                    <tr class="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600">
+                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ participant.username }}</td>
+                        <td class="py-3 px-6 text-left">{{ participant.email }}</td>
+                        <td class="py-3 px-6 text-left">{{ participant.first_name }}</td>
+                        <td class="py-3 px-6 text-left">{{ participant.last_name }}</td>
+                        <td class="py-3 px-6 text-left">
+                            {% for group in participant.groups.all %}
+                                <span class="inline-block bg-blue-200 text-blue-800 text-xs font-semibold mr-1 px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">{{ group.name }}</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-gray-700 dark:text-gray-300 text-center text-lg">😔 No participants found.</p>
+    {% endif %}
+</div>
+{% endblock %}
