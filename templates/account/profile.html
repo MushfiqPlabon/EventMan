@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Profile{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Your Profile</h1>
+
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="p-3 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+        <div class="flex items-center space-x-6">
+            <div class="flex-shrink-0">
+                {% if profile.profile_picture %}
+                    <img class="h-24 w-24 rounded-full object-cover" src="{{ profile.profile_picture.url }}" alt="Profile Picture">
+                {% else %}
+                    <img class="h-24 w-24 rounded-full object-cover" src="/media/profile_pictures/default_profile.webp" alt="Default Profile Picture">
+                {% endif %}
+            </div>
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ user.first_name }} {{ user.last_name }}</h2>
+                <p class="text-gray-600 dark:text-gray-300">@{{ user.username }}</p>
+                <p class="text-gray-600 dark:text-gray-300">{{ user.email }}</p>
+                {% if profile.phone_number %}
+                    <p class="text-gray-600 dark:text-gray-300">Phone: {{ profile.phone_number }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% if profile.bio %}
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Bio</h3>
+                <p class="text-gray-700 dark:text-gray-300">{{ profile.bio }}</p>
+            </div>
+        {% endif %}
+
+        <div class="mt-6 flex space-x-4">
+            <a href="{% url 'profile_update' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Edit Profile
+            </a>
+            <a href="{% url 'password_change' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600">
+                Change Password
+            </a>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Your Events</h2>
+    {% if user.events_joined.all %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for event in user.events_joined.all %}
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+                    {% if event.image %}
+                        <img class="w-full h-48 object-cover" src="{{ event.image.url }}" alt="{{ event.name }">
+                    {% endif %}
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{ event.name }}</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm mb-1">{{ event.date|date:"F d, Y" }} at {{ event.time|time:"h:i A" }}</p>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm mb-2">{{ event.location }}</p>
+                        <a href="{% url 'event_detail' event.pk %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">View Details</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-gray-600 dark:text-gray-300">😔 You haven't RSVP'd to any events yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

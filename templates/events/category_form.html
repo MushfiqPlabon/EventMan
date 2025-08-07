@@ -22,7 +22,7 @@
         {% for field in form %}
             <div class="mb-4">
                 <label for="{{ field.id_for_label }}" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">{{ field.label_tag }}</label>
-                {{ field }}
+                {{ field }} {# This renders the widget with the classes defined in forms.py #}
                 {% if field.help_text %}
                     <p class="text-gray-600 dark:text-gray-400 text-xs italic mt-1">{{ field.help_text }}</p>
                 {% endif %}
@@ -36,7 +36,7 @@
                 Save Category
             </button>
             <a href="{% url 'category_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
-                Cancel
+                ❌ Cancel
             </a>
         </div>
     </form>

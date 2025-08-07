@@ -16,12 +16,12 @@
         <div class="bg-green-100 dark:bg-green-900 p-4 rounded-md shadow">
             <h2 class="text-xl font-semibold text-green-800 dark:text-green-200">Manage Events</h2>
             <p class="text-green-700 dark:text-green-300">Create, update, and delete all events.</p>
-            <a href="#" class="mt-2 inline-block text-green-600 hover:underline dark:text-green-300">Go to Events</a>
+            <a href="{% url 'event_list' %}" class="mt-2 inline-block text-green-600 hover:underline dark:text-green-300">Go to Events</a>
         </div>
         <div class="bg-purple-100 dark:bg-purple-900 p-4 rounded-md shadow">
             <h2 class="text-xl font-semibold text-purple-800 dark:text-purple-200">Manage Categories</h2>
             <p class="text-purple-700 dark:text-purple-300">Add, edit, or remove event categories.</p>
-            <a href="#" class="mt-2 inline-block text-purple-600 hover:underline dark:text-purple-300">Go to Categories</a>
+            <a href="{% url 'category_list' %}" class="mt-2 inline-block text-purple-600 hover:underline dark:text-purple-300">➡️ Go to Categories</a>
         </div>
     </div>
 </div>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-EventMan is a comprehensive web-based Event Management System built with Django, designed to provide a robust platform for organizing, managing, and participating in various events. This project serves as an assignment for Week 3, Module 9, updated as a part of Week 4, Module 14 of Phitron's Software Development Track (SDT)'s Software Development Project (SDP) course, demonstrating advanced Django features and a modern frontend with Tailwind CSS.
+EventMan is a comprehensive web-based Event Management System built with Django, designed to provide a robust platform for organizing, managing, and participating in various events. This project serves as an assignment for Week 3, Module 9, updated as a part of Week 4, Module 14, further updated on Week 5, Module 18 (mid-term-exam) of Phitron's Software Development Track (SDT)'s Software Development Project (SDP) course, demonstrating advanced Django features and a modern frontend with Tailwind CSS.
 
 The application empowers organizers with efficient management tools and provides participants with a user-friendly experience, complete with authentication, role-based access, and RSVP functionality.
 
@@ -16,6 +16,7 @@ Experience EventMan in action: https://eventman-phi-assign.onrender.com/
 
 - **User Authentication & Authorization:** Secure user signup, login, and logout.
 - **Email Activation:** Mandatory email verification for new accounts with secure activation links.
+- **Custom Signup Fields:** Includes additional fields like first name and last name during user registration.
 - **Role-Based Access Control (RBAC):**
   - **Admin:** Full access to all features, including user and group management.
   - **Organizer:** Can create, update, and delete events and categories they manage.
@@ -44,7 +45,7 @@ Experience EventMan in action: https://eventman-phi-assign.onrender.com/
 - **Optimized Queries:** Efficient database interactions using `select_related` and `prefetch_related` for fetching related data, and aggregate queries for statistics.
 - **Search & Filter:** Easily find events by name, location, or filter by category and date range.
 - **Responsive Design:** User-friendly interface across various devices (mobile, tablet, desktop), powered by Tailwind CSS.
-- **Dark Mode (Currently Broken):** Client-side dark mode toggle for improved user experience. 
+- **Dark Mode:** Client-side dark mode toggle for improved user experience.
 
 ## Technologies Used
 
@@ -52,8 +53,8 @@ Experience EventMan in action: https://eventman-phi-assign.onrender.com/
 - **Authentication:** `django-allauth`
 - **Debugging:** `django-debug-toolbar`
 - **Database:** PostgreSQL (production/deployment), SQLite (local development fallback)
-- **Frontend:** HTML, CSS (Tailwind CSS v4.1), JavaScript
-- **Frontend Tooling:** Vite (for fast development and build of Tailwind CSS and JavaScript)
+- **Frontend:** HTML, CSS (Tailwind CSS v3), JavaScript
+- **Frontend Tooling:** Tailwind CSS CLI, PostCSS, Autoprefixer (for compiling CSS)
 - **Deployment:** Render.com
 
 ## Getting Started
@@ -108,15 +109,15 @@ Follow these steps to get EventMan up and running on your local machine:
     npm install
     ```
 
-6.  **Run Vite development server (in a separate terminal):**
+6.  **Run Tailwind CSS development server (in a separate terminal):**
     This command watches for changes in your frontend assets and provides hot-reloading. Keep it running during development.
 
     ```bash
     npm run dev
     ```
 
-7.  **Run Vite build (for production deployment or initial setup):**
-    This command compiles your Tailwind CSS and JavaScript for production.
+7.  **Run Tailwind CSS build (for production deployment or initial setup):**
+    This command compiles your Tailwind CSS for production.
 
     ```bash
     npm run build
@@ -155,7 +156,7 @@ Follow these steps to get EventMan up and running on your local machine:
     ```
     The application will be accessible at http://127.0.0.1:8000/.
 
-## Testing and Usage
+## Testing and Usage 🧪
 
 1.  **Access the application:** Open http://127.0.0.1:8000/ in your browser.
 2.  **Register a new user:** Use the "Register" link. An activation email will be printed to your Django server console. Copy the activation link from the console and paste it into your browser to activate the account.
@@ -166,54 +167,6 @@ Follow these steps to get EventMan up and running on your local machine:
 7.  **View RSVP'd Events:** As a Participant, check your dashboard to see events you've RSVP'd to.
 8.  **Search and Filter:** Utilize the search bar and filter options on the events list page.
 9.  **Debugging:** When `DEBUG=True` and your IP is in `INTERNAL_IPS` (e.g., `127.0.0.1`), the `django-debug-toolbar` will be visible on the right side of the page, providing detailed debugging information.
-
-## Project Structure
-
-```
-event_management_system/
-├── eventMan/                 # Django project settings
-│   ├── __init__.py
-│   ├── asgi.py
-│   ├── settings.py           # Main Django settings
-│   ├── urls.py               # Project-level URL configurations
-│   └── wsgi.py
-├── events/                   # Django app for event management
-│   ├── migrations/
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py               # Registers signals here
-│   ├── decorators.py         # Custom RBAC decorators
-│   ├── forms.py              # Event, Category, and Custom Signup forms
-│   ├── models.py             # Event, Category models
-│   ├── signals.py            # Django signals for email notifications
-│   ├── urls.py               # App-level URL configurations
-│   └── views.py              # Logic for event, category, dashboard, RSVP
-├── media/                    # Directory for uploaded media files (e.g., event images)
-│   └── event_images/
-├── static/                   # Static files (CSS, JS)
-│   ├── dist/                 # Compiled CSS/JS from Vite
-│   │   ├── main_css.css
-│   │   ├── toggle_js.js
-│   │   └── manifest.json
-│   └── src/                  # Source for Tailwind CSS and custom JS
-│       ├── input.css         # Tailwind CSS input file
-│       └── js/
-│           └── toggle.js     # Dark mode toggle JS
-├── templates/                # HTML templates
-│   ├── account/              # Django-allauth custom templates
-│   ├── dashboards/           # Dashboard specific templates
-│   ├── emails/               # Email templates for signals
-│   └── events/               # Event and Category specific templates
-│   └── base.html             # Base template for all pages
-│   └── home.html             # Homepage template
-├── .env.example              # Example environment variables file
-├── .gitignore
-├── db.sqlite3                # SQLite database (for local development)
-├── manage.py
-├── package.json              # Node.js dependencies and scripts
-├── requirements.txt          # Python dependencies
-└── vite.config.mjs           # Vite configuration for Tailwind CSS
-```
 
 ## Deployment Notes
 

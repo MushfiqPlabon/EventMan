@@ -9,6 +9,7 @@ venv/
 env/
 .idea/ # For PyCharm users
 .vscode/ # For VS Code users
+.env
 
 # Django
 db.sqlite3

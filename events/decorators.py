@@ -1,18 +1,19 @@
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import redirect
 from django.urls import reverse_lazy # Use reverse_lazy for decorators
+from django.contrib.auth.models import Group
 
 def is_admin(user):
-    """Checks if the user is a superuser (Admin)."""
-    return user.is_authenticated and user.is_superuser
+    """Checks if the user is a superuser or has the 'Admin' group membership."""
+    return user.is_authenticated and (user.is_superuser or user.groups.filter(name='Admin').exists())
 
 def is_organizer(user):
-    """Checks if the user belongs to the 'Organizer' group."""
-    return user.is_authenticated and user.groups.filter(name='Organizer').exists()
+    """Checks if the user has the 'Organizer' group membership."""
+    return user.is_authenticated and user.groups.filter(name='Organizer Users').exists()
 
 def is_participant(user):
-    """Checks if the user belongs to the 'Participant' group."""
-    return user.is_authenticated and user.groups.filter(name='Participant').exists()
+    """Checks if the user has the 'Participant' group membership."""
+    return user.is_authenticated and user.groups.filter(name='Participant Users').exists()
 
 # Decorators to restrict access
 def admin_required(function=None, redirect_field_name=None, login_url=reverse_lazy('account_login')):
