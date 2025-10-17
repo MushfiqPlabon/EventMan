@@ -11,4 +11,8 @@ npm install
 echo "Building Tailwind CSS..."
 npm run build
 
+# Collect static files using uv
+echo "Collecting static files..."
+uv run manage.py collectstatic --noinput
+
 echo "Build process completed successfully!"
