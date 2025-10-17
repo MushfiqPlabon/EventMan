@@ -17,8 +17,10 @@
   },
   "functions": {
     "api/index.py": {
-      "runtime": "python@3.12",
-      "maxDuration": 30
+      "maxDuration": 30,
+      "config": {
+        "python": "3.11.x"
+      }
     }
   }
 }
