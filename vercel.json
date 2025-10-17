@@ -16,8 +16,20 @@
     "PYTHONPATH": "$PYTHONPATH:."
   },
   "functions": {
-    "eventMan/wsgi.py": {
+    "api/eventMan/wsgi.py": {
+      "src": "eventMan/wsgi.py",
+      "runtime": "python3.12",
       "maxDuration": 30
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/staticfiles/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "api/eventMan/wsgi.py"
+    }
+  ]
 }
