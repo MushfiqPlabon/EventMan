@@ -18,6 +18,8 @@
   },
   "functions": {
     "api/index.py": {
+      "runtime": "python@3.12",
+      "handler": "api.index.application",
       "maxDuration": 30
     }
   }
