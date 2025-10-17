@@ -75,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "eventMan.wsgi.application"
+WSGI_APPLICATION = "eventMan.wsgi.app"
 
 # Database
 DATABASES = {
