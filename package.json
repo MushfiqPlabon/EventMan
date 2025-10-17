@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "tailwindcss -i ./static/src/input.css -o ./static/dist/output.css --watch",
-    "build": "tailwindcss -i $(pwd)/static/src/input.css -o $(pwd)/static/dist/output.css --minify",
-    "vercel-build": "bash build.sh",
+    "build": "tailwindcss -i ./static/src/input.css -o ./static/dist/output.css --minify",
+    "vercel-build": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

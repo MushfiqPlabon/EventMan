@@ -1,7 +1,21 @@
 {
   "version": 2,
-  "outputDirectory": "staticfiles",
-
+  "builds": [
+    {
+      "src": "eventMan/wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.12"
+      }
+    },
+    {
+      "src": "build.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "staticfiles"
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/static/(.*)",
@@ -9,17 +23,11 @@
     },
     {
       "src": "/(.*)",
-      "dest": "api/index.py"
+      "dest": "eventMan/wsgi.py"
     }
   ],
   "env": {
     "DJANGO_SETTINGS_MODULE": "eventMan.settings",
     "PYTHONPATH": "$PYTHONPATH:."
-  },
-  "functions": {
-    "api/index.py": {
-      "runtime": "python@3.12",
-      "maxDuration": 30
-    }
   }
 }
