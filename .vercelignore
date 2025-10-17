@@ -40,6 +40,6 @@ README.md
 VERCEL_DEPLOYMENT.md
 
 # Build artifacts (will be regenerated)
-staticfiles/
+
 .next/
 dist/
