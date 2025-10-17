@@ -15,10 +15,4 @@ npm run build
 echo "Collecting static files..."
 uv run python manage.py collectstatic --noinput
 
-echo "Contents of static/ directory:"
-ls -R static
-
-echo "Contents of staticfiles/ directory:"
-ls -R staticfiles
-
 echo "Build process completed successfully!"
