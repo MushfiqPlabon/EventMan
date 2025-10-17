@@ -187,29 +187,27 @@ CRISPY_FIELD_CLASS = "form-input"
 # HTMX settings
 HTMX_REQUIRE_CSRF = True
 
-# ===== VERCEL PRODUCTION SETTINGS =====
-# Vercel environment detection
-VERCEL_ENV = os.environ.get("VERCEL_ENV")
-IS_VERCEL = VERCEL_ENV is not None
+# ===== PRODUCTION SETTINGS =====
+# Production environment detection
+IS_RENDER = os.environ.get("RENDER") == "true" # Check for Render environment variable
 
-if IS_VERCEL:
-    # Production settings for Vercel
+if IS_RENDER:
+    # Production settings for Render
     DEBUG = False
 
-    # Vercel domains
+    # Render domains
     ALLOWED_HOSTS = [
-        ".vercel.app",
-        ".now.sh",
+        "eventman-phi-assign.onrender.com", # Add the Render domain
         "localhost",
         "127.0.0.1",
     ]
 
-    # Add custom domain if provided
-    VERCEL_URL = os.environ.get("VERCEL_URL")
-    if VERCEL_URL:
-        ALLOWED_HOSTS.append(VERCEL_URL)
+    # Add custom domain if provided (Render also supports custom domains)
+    RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+    if RENDER_EXTERNAL_HOSTNAME:
+        ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-    # Static files configuration for Vercel
+    # Static files configuration for Render
     STATIC_URL = "/static/"
     STATIC_ROOT = BASE_DIR / "staticfiles"
     STATICFILES_DIRS = [
@@ -225,15 +223,14 @@ if IS_VERCEL:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
 
-    # CSRF settings for Vercel
+    # CSRF settings for Render
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     CSRF_TRUSTED_ORIGINS = [
-        "https://*.vercel.app",
-        "https://*.now.sh",
+        "https://*.onrender.com",
     ]
 
-    # Logging configuration for Vercel
+    # Logging configuration for Render
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
