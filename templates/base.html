@@ -10,29 +10,64 @@
 </head>
 <body class="bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-sans antialiased">
     <header>
-        <nav class="bg-blue-600 p-4 shadow-md">
-        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
-            <a href="{% url 'home' %}" class="text-white text-2xl font-bold rounded-md px-3 py-2 hover:bg-blue-700 transition duration-300 mb-2 sm:mb-0">EventMan</a>
-            <div class="flex flex-wrap justify-center sm:justify-end space-x-1 sm:space-x-2">
-                <a href="{% url 'home' %}" class="text-white mx-1 sm:mx-2 hover:text-blue-200 rounded-md px-2 py-1 sm:px-3 sm:py-2 transition duration-300">Home</a>
-                <a href="{% url 'event_list' %}" class="text-white mx-1 sm:mx-2 hover:text-blue-200 rounded-md px-2 py-1 sm:px-3 sm:py-2 transition duration-300">Events</a> {# Updated link #}
-                <a href="{% url 'category_list' %}" class="text-white mx-1 sm:mx-2 hover:text-blue-200 rounded-md px-2 py-1 sm:px-3 sm:py-2 transition duration-300">Categories</a> {# Updated link #}
-
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard_redirect' %}" class="text-white mx-1 sm:mx-2 hover:text-blue-200 rounded-md px-2 py-1 sm:px-3 sm:py-2 transition duration-300">Dashboard</a>
-                    <span class="text-white mx-1 sm:mx-2 px-2 py-1 sm:px-3 sm:py-2 text-sm sm:text-base">Welcome, {{ user.first_name|default:user.email }}!</span>
-                    <form action="{% url 'account_logout' %}" method="post" class="inline">
-                        {% csrf_token %}
-                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 sm:py-2 sm:px-4 rounded-md transition duration-300">Logout</button>
-                    </form>
-                {% else %}
-                    <a href="{% url 'account_login' %}" class="text-white mx-1 sm:mx-2 hover:text-blue-200 rounded-md px-2 py-1 sm:px-3 sm:py-2 transition duration-300">Login</a>
-                    <a href="{% url 'account_signup' %}" class="text-white mx-1 sm:mx-2 hover:text-blue-200 rounded-md px-2 py-1 sm:px-3 sm:py-2 transition duration-300">Register</a>
-                {% endif %}
+        <nav class="bg-blue-600 shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <a href="{% url 'home' %}" class="text-white text-2xl font-bold hover:text-blue-200 transition-colors duration-200">
+                        EventMan
+                    </a>
+                    
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}nav-link-active{% endif %}">Home</a>
+                        <a href="{% url 'event_list' %}" class="nav-link {% if request.resolver_match.url_name == 'event_list' %}nav-link-active{% endif %}">Events</a>
+                        <a href="{% url 'category_list' %}" class="nav-link {% if request.resolver_match.url_name == 'category_list' %}nav-link-active{% endif %}">Categories</a>
+                        
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard_redirect' %}" class="nav-link {% if 'dashboard' in request.resolver_match.url_name %}nav-link-active{% endif %}">Dashboard</a>
+                            <div class="flex items-center ml-4 space-x-3">
+                                <span class="text-white text-sm">Welcome, {{ user.first_name|default:user.email|truncatechars:15 }}!</span>
+                                <form action="{% url 'account_logout' %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-danger text-sm py-2 px-4">Logout</button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'account_login' %}" class="nav-link">Login</a>
+                            <a href="{% url 'account_signup' %}" class="btn-primary text-sm py-2 px-4 ml-2">Register</a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button" class="md:hidden text-white hover:text-blue-200 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Mobile menu -->
+                <div id="mobile-menu" class="hidden md:hidden pb-4">
+                    <div class="flex flex-col space-y-2">
+                        <a href="{% url 'home' %}" class="nav-link">Home</a>
+                        <a href="{% url 'event_list' %}" class="nav-link">Events</a>
+                        <a href="{% url 'category_list' %}" class="nav-link">Categories</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard_redirect' %}" class="nav-link">Dashboard</a>
+                            <div class="pt-2 border-t border-blue-500">
+                                <p class="text-white text-sm mb-2">{{ user.first_name|default:user.email }}</p>
+                                <form action="{% url 'account_logout' %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-danger text-sm py-2 px-4 w-full">Logout</button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'account_login' %}" class="nav-link">Login</a>
+                            <a href="{% url 'account_signup' %}" class="btn-primary text-sm py-2 px-4 text-center">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div>
-    </nav>
-
+        </nav>
     </header>
         
     <main class="container mx-auto mt-8 p-4">
@@ -49,9 +84,22 @@
 
     <!-- Dark Mode Toggle -->
     <aside>
-    <button id="darkModeToggle" class="fixed bottom-4 right-4 bg-gray-700 text-white p-3 rounded-full shadow-lg hover:bg-gray-600 transition duration-300 focus:outline-none">🌓</button>
+    <button id="darkModeToggle" class="fixed bottom-4 right-4 bg-gray-700 text-white p-3 rounded-full shadow-lg hover:bg-gray-600 transition duration-300 focus:outline-none z-40">🌓</button>
     {# Link to your JavaScript #}
     <script src="{% static 'src/js/dark-mode.js' %}" defer></script>
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+        });
+    </script>
     </aside>
 </body>
 </html>

@@ -17,15 +17,35 @@
     </div>
     {% endif %}
 
-    <form class="login" method="POST" action="{% url 'account_login' %}">
+    <form class="login space-y-4" method="POST" action="{% url 'account_login' %}">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {% if field.name == 'login' %}
+                    <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                           class="form-input" placeholder="Email or Username" 
+                           value="{{ field.value|default:'' }}" required>
+                {% elif field.name == 'password' %}
+                    <input type="password" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                           class="form-input" placeholder="Password" required>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+                {% for error in field.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        
         {% if redirect_field_value %}
         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
         {% endif %}
-        <button class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" type="submit">{% trans "Sign In" %}</button>
+        
+        <button class="btn-primary w-full" type="submit">{% trans "Sign In" %}</button>
+        
         <p class="mt-4 text-center text-gray-700 dark:text-gray-300">
-            <a class="text-blue-500 hover:underline" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+            <a class="text-blue-500 hover:underline transition-colors" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
         </p>
     </form>
     <p class="mt-4 text-center text-gray-700 dark:text-gray-300">

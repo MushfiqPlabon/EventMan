@@ -8,34 +8,34 @@
     <h1 class="text-3xl font-bold text-center text-blue-600 dark:text-blue-400 mb-6">{{ title }}</h1>
 
     {% if messages %}
-        <ul class="mb-4">
+        <div class="mb-6 space-y-2">
             {% for message in messages %}
-                <li class="p-3 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                <div class="{% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% else %}message-info{% endif %}">
                     {{ message }}
-                </li>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% endif %}
 
     <form method="POST" enctype="multipart/form-data" class="space-y-4">
         {% csrf_token %}
         {% for field in form %}
-            <div class="mb-4">
-                <label for="{{ field.id_for_label }}" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">{{ field.label_tag }}</label>
-                {{ field }} {# This renders the widget with the classes defined in forms.py #}
+            <div class="mb-6">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
                 {% if field.help_text %}
-                    <p class="text-gray-600 dark:text-gray-400 text-xs italic mt-1">{{ field.help_text }}</p>
+                    <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">{{ field.help_text }}</p>
                 {% endif %}
                 {% for error in field.errors %}
-                    <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+                    <p class="form-error">{{ error }}</p>
                 {% endfor %}
             </div>
         {% endfor %}
-        <div class="flex justify-end space-x-4 mt-6">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                Save Event
+        <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-8">
+            <button type="submit" class="btn-primary w-full sm:w-auto">
+                💾 Save Event
             </button>
-            <a href="{% if event %}{% url 'event_detail' event.pk %}{% else %}{% url 'event_list' %}{% endif %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
+            <a href="{% if event %}{% url 'event_detail' event.pk %}{% else %}{% url 'event_list' %}{% endif %}" class="btn-secondary w-full sm:w-auto text-center">
                 ❌ Cancel
             </a>
         </div>

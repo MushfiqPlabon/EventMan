@@ -25,13 +25,13 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = ['name', 'description', 'date', 'time', 'location', 'category', 'image']
         widgets = {
-            'date': forms.DateInput(attrs={'type': 'date', 'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'name': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'description': forms.Textarea(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'location': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'category': forms.Select(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'image': forms.ClearableFileInput(attrs={'class': 'block w-full text-sm text-gray-900 dark:text-white border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-900 dark:border-gray-600 dark:placeholder-gray-400'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-input'}),
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Enter event name'}),
+            'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 4, 'placeholder': 'Describe your event...'}),
+            'location': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Event location'}),
+            'category': forms.Select(attrs={'class': 'form-input'}),
+            'image': forms.ClearableFileInput(attrs={'class': 'form-input file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'}),
         }
         # Add labels for better display in forms
         labels = {
