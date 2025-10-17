@@ -8,7 +8,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "eventMan/wsgi.py"
+      "dest": "api/index.py"
     }
   ],
   "env": {
@@ -16,20 +16,9 @@
     "PYTHONPATH": "$PYTHONPATH:."
   },
   "functions": {
-    "api/eventMan/wsgi.py": {
-      "src": "eventMan/wsgi.py",
+    "api/index.py": {
       "runtime": "python3.12",
       "maxDuration": 30
     }
-  },
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/staticfiles/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "api/eventMan/wsgi.py"
-    }
-  ]
+  }
 }
