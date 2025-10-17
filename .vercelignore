@@ -1,0 +1,45 @@
+# Vercel ignore file - exclude unnecessary files from deployment
+
+# Development files
+.env
+.env.local
+*.backup
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Static files source (will be built)
+node_modules/
+.npm/
+static/src/
+
+# Development databases
+db.sqlite3
+*.sqlite3
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git files
+.git/
+.gitignore
+
+# Documentation
+README.md
+VERCEL_DEPLOYMENT.md
+
+# Build artifacts (will be regenerated)
+staticfiles/
+.next/
+dist/

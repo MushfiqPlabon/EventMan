@@ -1,63 +1,74 @@
 from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import redirect
-from django.urls import reverse_lazy # Use reverse_lazy for decorators
-from django.contrib.auth.models import Group
+from django.urls import reverse_lazy  # Use reverse_lazy for decorators
+
 
 def is_admin(user):
     """Checks if the user is a superuser or has the 'Admin' group membership."""
-    return user.is_authenticated and (user.is_superuser or user.groups.filter(name='Admin').exists())
+    return user.is_authenticated and (
+        user.is_superuser or user.groups.filter(name="Admin").exists()
+    )
+
 
 def is_organizer(user):
     """Checks if the user has the 'Organizer' group membership."""
-    return user.is_authenticated and user.groups.filter(name='Organizer Users').exists()
+    return user.is_authenticated and user.groups.filter(name="Organizer Users").exists()
+
 
 def is_participant(user):
     """Checks if the user has the 'Participant' group membership."""
-    return user.is_authenticated and user.groups.filter(name='Participant Users').exists()
+    return (
+        user.is_authenticated and user.groups.filter(name="Participant Users").exists()
+    )
+
 
 # Decorators to restrict access
-def admin_required(function=None, redirect_field_name=None, login_url=reverse_lazy('account_login')):
+def admin_required(
+    function=None, redirect_field_name=None, login_url=reverse_lazy("account_login")
+):
     """Decorator for views that require admin (superuser) access."""
     actual_decorator = user_passes_test(
-        is_admin,
-        login_url=login_url,
-        redirect_field_name=redirect_field_name
+        is_admin, login_url=login_url, redirect_field_name=redirect_field_name
     )
     if function:
         return actual_decorator(function)
     return actual_decorator
 
-def organizer_required(function=None, redirect_field_name=None, login_url=reverse_lazy('account_login')):
+
+def organizer_required(
+    function=None, redirect_field_name=None, login_url=reverse_lazy("account_login")
+):
     """Decorator for views that require 'Organizer' group membership."""
     actual_decorator = user_passes_test(
-        is_organizer,
-        login_url=login_url,
-        redirect_field_name=redirect_field_name
+        is_organizer, login_url=login_url, redirect_field_name=redirect_field_name
     )
     if function:
         return actual_decorator(function)
     return actual_decorator
 
-def participant_required(function=None, redirect_field_name=None, login_url=reverse_lazy('account_login')):
+
+def participant_required(
+    function=None, redirect_field_name=None, login_url=reverse_lazy("account_login")
+):
     """Decorator for views that require 'Participant' group membership."""
     actual_decorator = user_passes_test(
-        is_participant,
-        login_url=login_url,
-        redirect_field_name=redirect_field_name
+        is_participant, login_url=login_url, redirect_field_name=redirect_field_name
     )
     if function:
         return actual_decorator(function)
     return actual_decorator
 
+
 # Combined decorator for Organizer or Admin access (e.g., for managing events)
-def organizer_or_admin_required(function=None, redirect_field_name=None, login_url=reverse_lazy('account_login')):
+def organizer_or_admin_required(
+    function=None, redirect_field_name=None, login_url=reverse_lazy("account_login")
+):
     """Decorator for views that require 'Organizer' or Admin (superuser) access."""
+
     def check_user(user):
         return is_organizer(user) or is_admin(user)
+
     actual_decorator = user_passes_test(
-        check_user,
-        login_url=login_url,
-        redirect_field_name=redirect_field_name
+        check_user, login_url=login_url, redirect_field_name=redirect_field_name
     )
     if function:
         return actual_decorator(function)

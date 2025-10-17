@@ -1,0 +1,88 @@
+{% if events %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for event in events %}
+            <div class="card card-hover">
+                {% if event.image %}
+                    <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
+                {% endif %}
+                
+                <div class="card-body">
+                    <h5 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{{ event.name }}</h5>
+                    
+                    <div class="space-y-2 mb-4">
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                            <span class="w-6">📅</span>
+                            <span>{{ event.date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                            <span class="w-6">🕐</span>
+                            <span>{{ event.time|time:"g:i A" }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                            <span class="w-6">📍</span>
+                            <span>{{ event.location }}</span>
+                        </div>
+                        {% if event.category %}
+                            <div class="flex items-center">
+                                <span class="badge badge-secondary">
+                                    🏷️ {{ event.category.name }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3">{{ event.description|truncatewords:15 }}</p>
+                    
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            👥 <span data-participant-count="{{ event.id }}">{{ event.participants.count }}</span> participant{{ event.participants.count|pluralize }}
+                        </span>
+                        
+                        {% if event.is_upcoming %}
+                            <span class="badge badge-success">Upcoming</span>
+                        {% elif event.is_past %}
+                            <span class="badge badge-secondary">Past</span>
+                        {% elif event.is_today %}
+                            <span class="badge badge-warning">Today</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        {% if user.is_authenticated and event.is_upcoming %}
+                            <button hx-post="{% url 'rsvp_toggle' event.pk %}"
+                                    hx-swap="outerHTML"
+                                    class="{% if user in event.participants.all %}btn-success{% else %}btn-primary{% endif %} text-sm py-2 px-4 flex-1">
+                                {% if user in event.participants.all %}
+                                    ✅ RSVP'd
+                                {% else %}
+                                    📝 RSVP
+                                {% endif %}
+                            </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'event_detail' event.pk %}" class="btn-primary text-sm py-2 px-4 flex-1 text-center">
+                            👁️ View
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="mt-8 text-center">
+        <p class="text-gray-600 dark:text-gray-400">
+            ℹ️ Showing {{ events|length }} event{{ events|length|pluralize }}
+        </p>
+    </div>
+{% else %}
+    <div class="text-center py-12">
+        <div class="text-6xl mb-4">📅</div>
+        <h3 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">No events found</h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">Try adjusting your search criteria or check back later.</p>
+        {% if user.is_authenticated and user.groups.all %}
+            <a href="{% url 'event_create' %}" class="btn-success">
+                ➕ Create the first event
+            </a>
+        {% endif %}
+    </div>
+{% endif %}

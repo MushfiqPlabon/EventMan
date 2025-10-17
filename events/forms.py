@@ -1,84 +1,275 @@
+from crispy_forms.bootstrap import FormActions
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Column, Field, Layout, Row, Submit
 from django import forms
-from allauth.account.forms import SignupForm
-from .models import Event, Category, Profile
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.forms import PasswordChangeForm as AuthPasswordChangeForm
+from django.contrib.auth import get_user_model
 
-# If you have CustomSignupForm, keep it here:
-class CustomSignupForm(SignupForm):
-    first_name = forms.CharField(max_length=30, label='First Name', widget=forms.TextInput(attrs={'placeholder': 'First Name'}))
-    last_name = forms.CharField(max_length=30, label='Last Name', widget=forms.TextInput(attrs={'placeholder': 'Last Name'}))
-    
+from .models import Category, Event, Profile
 
-    def save(self, request):
-        user = super(CustomSignupForm, self).save(request)
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.save()
-        participant_group, created = Group.objects.get_or_create(name='Participant')
-        user.groups.add(participant_group)
-        return user
+User = get_user_model()
 
 
 class EventForm(forms.ModelForm):
+    """Enhanced Event form with crispy styling"""
+
     class Meta:
         model = Event
-        fields = ['name', 'description', 'date', 'time', 'location', 'category', 'image']
+        fields = [
+            "name",
+            "description",
+            "date",
+            "time",
+            "location",
+            "category",
+            "image",
+        ]
         widgets = {
-            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
-            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-input'}),
-            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Enter event name'}),
-            'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 4, 'placeholder': 'Describe your event...'}),
-            'location': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Event location'}),
-            'category': forms.Select(attrs={'class': 'form-input'}),
-            'image': forms.ClearableFileInput(attrs={'class': 'form-input file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'}),
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "time": forms.TimeInput(attrs={"type": "time"}),
+            "description": forms.Textarea(attrs={"rows": 4}),
         }
-        # Add labels for better display in forms
-        labels = {
-            'name': 'Event Name',
-            'description': 'Description',
-            'date': 'Date',
-            'time': 'Time',
-            'location': 'Location',
-            'category': 'Category',
-            'image': 'Event Image',
-        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_class = "needs-validation"
+        self.helper.attrs = {"novalidate": True}
+
+        self.helper.layout = Layout(
+            Row(
+                Column("name", css_class="form-group col-md-8 mb-3"),
+                Column("category", css_class="form-group col-md-4 mb-3"),
+                css_class="row",
+            ),
+            Row(
+                Column("date", css_class="form-group col-md-6 mb-3"),
+                Column("time", css_class="form-group col-md-6 mb-3"),
+                css_class="row",
+            ),
+            Field("location", css_class="form-control mb-3"),
+            Field("description", css_class="form-control mb-3"),
+            Field("image", css_class="form-control mb-3"),
+            HTML(
+                '<div id="form-feedback" class="alert alert-info d-none">Changes saved automatically...</div>'
+            ),
+            FormActions(
+                Submit("submit", "Save Event", css_class="btn btn-primary btn-lg"),
+                HTML(
+                    '<button type="button" class="btn btn-secondary ms-2" onclick="history.back()">Cancel</button>'
+                ),
+            ),
+        )
+
+    def save(self, commit=True):
+        event = super().save(commit=False)
+        if self.user:
+            event.organizer = self.user
+        if commit:
+            event.save()
+        return event
+
 
 class CategoryForm(forms.ModelForm):
+    """Enhanced Category form with crispy styling"""
+
     class Meta:
         model = Category
-        fields = ['name', 'description']
+        fields = ["name", "description"]
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'description': forms.Textarea(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-        }
-        labels = {
-            'name': 'Category Name',
-            'description': 'Description',
+            "description": forms.Textarea(attrs={"rows": 3}),
         }
 
-class UserUpdateForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email']
-        widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'last_name': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'email': forms.EmailInput(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-        }
-
-class ProfileUpdateForm(forms.ModelForm):
-    class Meta:
-        model = Profile
-        fields = ['profile_picture', 'phone_number', 'bio']
-        widgets = {
-            'profile_picture': forms.ClearableFileInput(attrs={'class': 'block w-full text-sm text-gray-900 dark:text-white border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-900 dark:border-gray-600 dark:placeholder-gray-400'}),
-            'phone_number': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-            'bio': forms.Textarea(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'}),
-        }
-
-class PasswordChangeForm(AuthPasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs['class'] = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-900 dark:text-white dark:border-gray-500'
+
+        self.helper = FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_class = "needs-validation"
+        self.helper.attrs = {"novalidate": True}
+
+        self.helper.layout = Layout(
+            Field("name", css_class="form-control mb-3"),
+            Field("description", css_class="form-control mb-3"),
+            FormActions(
+                Submit("submit", "Save Category", css_class="btn btn-success"),
+                HTML(
+                    '<a href="{% url \'category_list\' %}" class="btn btn-secondary ms-2">Cancel</a>'
+                ),
+            ),
+        )
+
+
+class ProfileForm(forms.ModelForm):
+    """Enhanced Profile form with crispy styling"""
+
+    first_name = forms.CharField(
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "given-name"}),
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "family-name"}),
+    )
+    email = forms.EmailField(
+        required=False, widget=forms.EmailInput(attrs={"autocomplete": "email"})
+    )
+
+    class Meta:
+        model = Profile
+        fields = ["profile_picture", "phone_number", "bio"]
+        widgets = {
+            "bio": forms.Textarea(attrs={"rows": 4}),
+            "phone_number": forms.TextInput(attrs={"autocomplete": "tel"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.user:
+            self.fields["first_name"].initial = self.instance.user.first_name
+            self.fields["last_name"].initial = self.instance.user.last_name
+            self.fields["email"].initial = self.instance.user.email
+
+        self.helper = FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_enctype = "multipart/form-data"
+        self.helper.form_class = "needs-validation"
+        self.helper.attrs = {"novalidate": True}
+
+        self.helper.layout = Layout(
+            HTML('<h4 class="mb-3">Personal Information</h4>'),
+            Row(
+                Column("first_name", css_class="form-group col-md-6 mb-3"),
+                Column("last_name", css_class="form-group col-md-6 mb-3"),
+                css_class="row",
+            ),
+            Field("email", css_class="form-control mb-3"),
+            HTML('<hr><h4 class="mb-3">Profile Details</h4>'),
+            Field("profile_picture", css_class="form-control mb-3"),
+            Field("phone_number", css_class="form-control mb-3"),
+            Field("bio", css_class="form-control mb-3"),
+            FormActions(
+                Submit("submit", "Update Profile", css_class="btn btn-primary"),
+                HTML(
+                    '<a href="{% url \'profile\' %}" class="btn btn-secondary ms-2">Cancel</a>'
+                ),
+            ),
+        )
+
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+
+        # Update user fields
+        if profile.user:
+            profile.user.first_name = self.cleaned_data["first_name"]
+            profile.user.last_name = self.cleaned_data["last_name"]
+            profile.user.email = self.cleaned_data["email"]
+            if commit:
+                profile.user.save()
+
+        if commit:
+            profile.save()
+        return profile
+
+
+class EventSearchForm(forms.Form):
+    """Enhanced search form with crispy styling"""
+
+    q = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search events by name, location, or description...",
+                "class": "form-control",
+                "hx-get": "{{ request.path }}",
+                "hx-trigger": "input changed delay:300ms",
+                "hx-target": "#events-container",
+                "hx-swap": "innerHTML",
+            }
+        ),
+        label="Search",
+    )
+
+    status = forms.ChoiceField(
+        choices=Event.STATUS,
+        required=False,
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "hx-get": "{{ request.path }}",
+                "hx-trigger": "change",
+                "hx-target": "#events-container",
+                "hx-swap": "innerHTML",
+            }
+        ),
+    )
+
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        required=False,
+        empty_label="All Categories",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "hx-get": "{{ request.path }}",
+                "hx-trigger": "change",
+                "hx-target": "#events-container",
+                "hx-swap": "innerHTML",
+            }
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_method = "get"
+        self.helper.form_class = "mb-4"
+        self.helper.disable_csrf = True
+
+        self.helper.layout = Layout(
+            HTML('<div class="card"><div class="card-body">'),
+            HTML('<h5 class="card-title mb-3">🔍 Find Events</h5>'),
+            Row(
+                Column(
+                    Field(
+                        "q",
+                        hx_get="{{ request.path }}",
+                        hx_trigger="input changed delay:300ms",
+                        hx_target="#events-container",
+                        hx_swap="innerHTML",
+                    ),
+                    css_class="col-md-6 mb-3",
+                ),
+                Column(
+                    Field(
+                        "status",
+                        hx_get="{{ request.path }}",
+                        hx_trigger="change",
+                        hx_target="#events-container",
+                        hx_swap="innerHTML",
+                    ),
+                    css_class="col-md-3 mb-3",
+                ),
+                Column(
+                    Field(
+                        "category",
+                        hx_get="{{ request.path }}",
+                        hx_trigger="change",
+                        hx_target="#events-container",
+                        hx_swap="innerHTML",
+                    ),
+                    css_class="col-md-3 mb-3",
+                ),
+                css_class="row",
+            ),
+            HTML(
+                '<div class="text-muted small">Results update automatically as you type or change filters</div>'
+            ),
+            HTML("</div></div>"),
+        )

@@ -1,67 +1,155 @@
 {% extends "base.html" %}
-{% load i18n %}
 
 {% block title %}{{ event.name }}{% endblock %}
 
 {% block content %}
-<div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-    {% if messages %}
-        <ul class="mb-4">
-            {% for message in messages %}
-                <li class="p-3 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
-                    {{ message }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+<div class="max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Event Content -->
+        <div class="lg:col-span-2">
+            <div class="card">
+                {% if event.image %}
+                    <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-64 md:h-80 object-cover rounded-t-lg">
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="flex flex-col md:flex-row justify-between items-start mb-6">
+                        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4 md:mb-0">{{ event.name }}</h1>
+                        {% if event.is_upcoming %}
+                            <span class="badge badge-success text-base px-3 py-1">✨ Upcoming</span>
+                        {% elif event.is_past %}
+                            <span class="badge badge-secondary text-base px-3 py-1">📅 Past</span>
+                        {% elif event.is_today %}
+                            <span class="badge badge-warning text-base px-3 py-1">🔥 Today</span>
+                        {% endif %}
+                    </div>
 
-    <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
-        {% if event.image %}
-            <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full md:w-1/3 h-64 object-cover rounded-lg shadow-md">
-        {% endif %}
-        <div class="flex-1">
-            <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4">{{ event.name }}</h1>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
-                <span class="font-semibold">Date:</span> {{ event.date|date:"M d, Y" }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
-                <span class="font-semibold">Time:</span> {{ event.time|time:"P" }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
-                <span class="font-semibold">Location:</span> {{ event.location }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
-                <span class="font-semibold">Category:</span> {{ event.category.name|default:"N/A" }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-4">
-                <span class="font-semibold">Organizer:</span> {{ event.organizer.first_name|default:event.organizer.email|default:"N/A" }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 mb-6">{{ event.description }}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h6 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">📅 Date & Time</h6>
+                            <p class="text-gray-600 dark:text-gray-400">{{ event.date|date:"l, F d, Y" }} at {{ event.time|time:"g:i A" }}</p>
+                        </div>
+                        <div>
+                            <h6 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">📍 Location</h6>
+                            <p class="text-gray-600 dark:text-gray-400">{{ event.location }}</p>
+                        </div>
+                    </div>
 
-            <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">Participants ({{ event.participants.count }})</h2>
-            {% if event.participants.all %}
-                <ul class="list-disc list-inside text-gray-700 dark:text-gray-300">
-                    {% for participant in event.participants.all %}
-                        <li>{{ participant.first_name|default:participant.email }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-700 dark:text-gray-300">No participants yet.</p>
-            {% endif %}
+                    {% if event.category %}
+                        <div class="mb-6">
+                            <h6 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">🏷️ Category</h6>
+                            <span class="badge badge-primary">{{ event.category.name }}</span>
+                        </div>
+                    {% endif %}
 
-            {% if user.is_authenticated and user.is_superuser or user.is_authenticated and event.organizer == user %}
-            <div class="mt-8 flex space-x-4">
-                <a href="{% url 'event_update' event.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                    Edit Event
-                </a>
-                <a href="{% url 'event_delete' event.pk %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                    Delete Event
-                </a>
+                    <div class="mb-6">
+                        <h6 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">👤 Organizer</h6>
+                        <p class="text-gray-600 dark:text-gray-400">{{ event.organizer.first_name|default:event.organizer.email|default:"Unknown" }}</p>
+                    </div>
+
+                    <div class="mb-8">
+                        <h6 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">📝 Description</h6>
+                        <div class="prose dark:prose-invert max-w-none">
+                            {{ event.description|linebreaks }}
+                        </div>
+                    </div>
+
+                    <!-- RSVP Button -->
+                    {% if user.is_authenticated and event.is_upcoming %}
+                        <div class="mb-6">
+                            <button hx-post="{% url 'rsvp_toggle' event.pk %}"
+                                    hx-swap="outerHTML"
+                                    class="{% if user in event.participants.all %}btn-success{% else %}btn-primary{% endif %} text-lg py-3 px-8">
+                                {% if user in event.participants.all %}
+                                    ✅ You're attending!
+                                {% else %}
+                                    📝 RSVP for this event
+                                {% endif %}
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    <!-- Action buttons for organizers -->
+                    {% if user.is_authenticated and user.is_superuser or user.is_authenticated and event.organizer == user %}
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="{% url 'event_update' event.pk %}" class="btn-warning">
+                                ✏️ Edit Event
+                            </a>
+                            <a href="{% url 'event_delete' event.pk %}" class="btn-danger">
+                                🗑️ Delete Event
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    <a href="{% url 'event_list' %}" class="btn-secondary">
+                        ⬅️ Back to Events
+                    </a>
+                </div>
             </div>
-            {% endif %}
+        </div>
 
-            <div class="mt-4">
-                <a href="{% url 'event_list' %}" class="text-blue-500 hover:underline">⬅️ Back to Event List</a>
+        <!-- Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Participants Card -->
+            <div class="card">
+                <div class="bg-blue-50 dark:bg-blue-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h5 class="font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+                        👥 Participants
+                        <span class="badge badge-primary ml-2" data-participant-count="{{ event.id }}">
+                            {{ event.participants.count }}
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if event.participants.all %}
+                        <div class="space-y-3">
+                            {% for participant in event.participants.all %}
+                                <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium mr-3">
+                                        {{ participant.first_name.0|default:participant.email.0|upper }}
+                                    </div>
+                                    <span class="text-gray-700 dark:text-gray-300">
+                                        {{ participant.first_name|default:participant.email }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-6">
+                            <div class="text-4xl mb-3">😔</div>
+                            <p class="text-gray-500 dark:text-gray-400">
+                                No participants yet. Be the first to RSVP!
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Event Stats Card -->
+            <div class="card">
+                <div class="bg-green-50 dark:bg-green-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h6 class="font-semibold text-gray-800 dark:text-gray-200">📊 Event Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ event.participants.count }}</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Attending</div>
+                        </div>
+                        <div class="p-4 bg-purple-50 dark:bg-purple-900 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                {% if event.is_upcoming %}
+                                    {{ event.date|timeuntil }}
+                                {% else %}
+                                    {{ event.date|timesince }} ago
+                                {% endif %}
+                            </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                {% if event.is_upcoming %}Until event{% else %}Since event{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

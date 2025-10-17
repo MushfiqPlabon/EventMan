@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Your Profile{% endblock %}
 
@@ -22,7 +23,7 @@
                 {% if profile.profile_picture %}
                     <img class="h-24 w-24 rounded-full object-cover" src="{{ profile.profile_picture.url }}" alt="Profile Picture">
                 {% else %}
-                    <img class="h-24 w-24 rounded-full object-cover" src="/media/profile_pictures/default_profile.webp" alt="Default Profile Picture">
+                    <img class="h-24 w-24 rounded-full object-cover" src="{% static 'profile_pictures/default_profile.webp' %}" alt="Default Profile Picture">
                 {% endif %}
             </div>
             <div>

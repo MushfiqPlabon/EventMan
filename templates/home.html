@@ -1,26 +1,105 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Home - Event Management System{% endblock %}
+{% block title %}Welcome to EventMan{% endblock %}
 
 {% block content %}
-<div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-    <h1 class="text-3xl sm:text-5xl font-extrabold text-blue-600 dark:text-blue-400 mb-4
-               text-shadow-lg dark:text-shadow-cyan-500/50"> {# Responsive font size & v4.1 text-shadow #}
-        Welcome to EventMan!
-    </h1>
-    <p class="text-xl text-gray-700 dark:text-gray-300 mb-6">
-        Your ultimate solution for managing events with ease.
-    </p>
-    <p class="text-lg text-gray-600 dark:text-gray-300">
-        Explore upcoming events, manage your categories, and connect with participants.
-    </p>
-    <div class="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-        <a href="{% url 'event_list' %}" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
-            Browse Events
-        </a>
-        <a href="#" class="w-full sm:w-auto bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
-            Learn More 📚
-        </a>
+<div class="max-w-7xl mx-auto">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-8 md:p-12 text-center mb-12">
+        <div class="text-6xl md:text-8xl mb-6">🗓️</div>
+        <h1 class="text-4xl md:text-6xl font-bold mb-4">Welcome to EventMan</h1>
+        <p class="text-xl md:text-2xl text-blue-100 mb-8">Your ultimate event management platform with real-time updates</p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard_redirect' %}" class="bg-white text-blue-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 transform hover:scale-105">
+                    📊 Go to Dashboard
+                </a>
+                <a href="{% url 'event_list' %}" class="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200">
+                    📅 Browse Events
+                </a>
+            {% else %}
+                <a href="{% url 'account_signup' %}" class="bg-white text-blue-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 transform hover:scale-105">
+                    ✨ Get Started
+                </a>
+                <a href="{% url 'event_list' %}" class="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200">
+                    📅 Browse Events
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div class="text-center p-6 bg-blue-50 dark:bg-blue-900 rounded-xl">
+            <div class="text-5xl mb-4">📅</div>
+            <h3 class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ total_events }}</h3>
+            <p class="text-gray-600 dark:text-gray-400">Total Events</p>
+        </div>
+        <div class="text-center p-6 bg-green-50 dark:bg-green-900 rounded-xl">
+            <div class="text-5xl mb-4">🏷️</div>
+            <h3 class="text-3xl font-bold text-green-600 dark:text-green-400">{{ total_categories }}</h3>
+            <p class="text-gray-600 dark:text-gray-400">Categories</p>
+        </div>
+        <div class="text-center p-6 bg-purple-50 dark:bg-purple-900 rounded-xl">
+            <div class="text-5xl mb-4">🔴</div>
+            <h3 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                <span class="live-badge">LIVE</span>
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">Real-time Updates</p>
+        </div>
+    </div>
+
+    <!-- Featured Events -->
+    {% if featured_events %}
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-8 text-center">
+                ⭐ Featured Upcoming Events
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {% for event in featured_events %}
+                    <div class="card card-hover">
+                        {% if event.image %}
+                            <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{{ event.name }}</h5>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">{{ event.description|truncatewords:15 }}</p>
+                            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                <span class="mr-2">📅</span>
+                                <span>{{ event.date|date:"M d, Y" }}</span>
+                            </div>
+                            <a href="{% url 'event_detail' event.pk %}" class="btn-primary w-full text-center">
+                                👁️ View Details
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="text-center">
+                <a href="{% url 'event_list' %}" class="btn-primary text-lg py-3 px-8">
+                    📅 View All Events
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Features Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center p-6">
+            <div class="text-6xl text-blue-500 mb-4">⚡</div>
+            <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Real-time Updates</h4>
+            <p class="text-gray-600 dark:text-gray-400">Live RSVP tracking, instant search results, and auto-updating dashboards.</p>
+        </div>
+        <div class="text-center p-6">
+            <div class="text-6xl text-green-500 mb-4">📱</div>
+            <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Mobile Responsive</h4>
+            <p class="text-gray-600 dark:text-gray-400">Perfect experience on any device - desktop, tablet, or mobile.</p>
+        </div>
+        <div class="text-center p-6">
+            <div class="text-6xl text-purple-500 mb-4">🛡️</div>
+            <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Secure & Reliable</h4>
+            <p class="text-gray-600 dark:text-gray-400">Built with Django security best practices and reliable infrastructure.</p>
+        </div>
     </div>
 </div>
 {% endblock %}

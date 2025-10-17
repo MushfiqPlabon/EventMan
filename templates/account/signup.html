@@ -25,18 +25,18 @@
                 {% if field.name == 'email' %}
                     <input type="email" name="{{ field.name }}" id="{{ field.id_for_label }}" 
                            class="form-input" placeholder="your@email.com" 
-                           value="{{ field.value|default:'' }}" required>
+                           value="{{ field.value|default:'' }}" required autocomplete="email">
                 {% elif field.name == 'first_name' %}
                     <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" 
                            class="form-input" placeholder="First Name" 
-                           value="{{ field.value|default:'' }}" required>
+                           value="{{ field.value|default:'' }}" required autocomplete="given-name">
                 {% elif field.name == 'last_name' %}
                     <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" 
                            class="form-input" placeholder="Last Name" 
-                           value="{{ field.value|default:'' }}" required>
+                           value="{{ field.value|default:'' }}" required autocomplete="family-name">
                 {% elif 'password' in field.name %}
                     <input type="password" name="{{ field.name }}" id="{{ field.id_for_label }}" 
-                           class="form-input" placeholder="Password" required>
+                           class="form-input" placeholder="Password" required autocomplete="new-password">
                 {% else %}
                     {{ field }}
                 {% endif %}
