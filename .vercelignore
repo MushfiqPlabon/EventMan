@@ -15,7 +15,6 @@ __pycache__/
 # Static files source (will be built)
 node_modules/
 .npm/
-static/src/
 
 # Development databases
 db.sqlite3
