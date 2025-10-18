@@ -8,7 +8,7 @@ The application empowers organizers with efficient management tools and provides
 
 ## Live Demo
 
-Experience EventMan in action: [Link to your Vercel deployment]
+Experience EventMan in action: [https://eventman-phi-assign.onrender.com/]
 
 > **Note:** It may take a while for the page to load due to it being on a free tier hosting.
 
