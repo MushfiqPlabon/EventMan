@@ -20,9 +20,9 @@ class EventManRedis:
 
     def __init__(self):
         self.redis = None
-        if REDIS_AVAILABLE and settings.REDIS_URL and settings.REDIS_TOKEN:
+        if REDIS_AVAILABLE and settings.REDIS_URL:
             try:
-                self.redis = Redis(url=settings.REDIS_URL, token=settings.REDIS_TOKEN)
+                self.redis = Redis(url=settings.REDIS_URL)
             except Exception as e:
                 print(f"Redis connection failed: {e}")
                 self.redis = None
