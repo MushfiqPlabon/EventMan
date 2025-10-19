@@ -249,7 +249,7 @@ if IS_RENDER:
 
 # ===== REDIS CONFIGURATION (UPSTASH) =====
 # Redis settings for caching and real-time features
-REDIS_URL = config("REDIS_URL", default="")
+REDIS_URL = config("REDIS_URL", default="") # Should be a rediss:// URL with embedded password (e.g., rediss://user:password@host:port)
 
 
 if REDIS_URL:

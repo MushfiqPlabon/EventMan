@@ -5,27 +5,16 @@ Redis utilities for EventMan - Real-time features and caching
 import json
 
 from django.conf import settings
-from django.core.cache import cache
+from django_redis import get_redis_connection
 
-try:
-    from upstash_redis import Redis
 
-    REDIS_AVAILABLE = True
-except ImportError:
-    REDIS_AVAILABLE = False
 
 
 class EventManRedis:
     """Redis utilities for real-time features"""
 
     def __init__(self):
-        self.redis = None
-        if REDIS_AVAILABLE and settings.REDIS_URL:
-            try:
-                self.redis = Redis(url=settings.REDIS_URL)
-            except Exception as e:
-                print(f"Redis connection failed: {e}")
-                self.redis = None
+        self.redis = get_redis_connection("default")
 
     def is_available(self):
         """Check if Redis is available"""
@@ -35,9 +24,7 @@ class EventManRedis:
         """Cache dashboard statistics"""
         try:
             if self.redis:
-                self.redis.setex("dashboard_stats", timeout, json.dumps(stats_data))
-            else:
-                cache.set("dashboard_stats", stats_data, timeout)
+                self.redis.set("dashboard_stats", json.dumps(stats_data), ex=timeout)
             return True
         except Exception as e:
             print(f"Failed to cache stats: {e}")
@@ -49,8 +36,6 @@ class EventManRedis:
             if self.redis:
                 data = self.redis.get("dashboard_stats")
                 return json.loads(data) if data else None
-            else:
-                return cache.get("dashboard_stats")
         except Exception as e:
             print(f"Failed to get cached stats: {e}")
             return None
@@ -60,9 +45,7 @@ class EventManRedis:
         try:
             cache_key = f"search:{hash(query)}"
             if self.redis:
-                self.redis.setex(cache_key, timeout, json.dumps(results))
-            else:
-                cache.set(cache_key, results, timeout)
+                self.redis.set(cache_key, json.dumps(results), ex=timeout)
             return True
         except Exception as e:
             print(f"Failed to cache search results: {e}")
@@ -75,8 +58,6 @@ class EventManRedis:
             if self.redis:
                 data = self.redis.get(cache_key)
                 return json.loads(data) if data else None
-            else:
-                return cache.get(cache_key)
         except Exception as e:
             print(f"Failed to get cached search: {e}")
             return None
@@ -87,10 +68,6 @@ class EventManRedis:
             key = f"event_views:{event_id}"
             if self.redis:
                 return self.redis.incr(key)
-            else:
-                current = cache.get(key, 0)
-                cache.set(key, current + 1, 86400)  # 24 hours
-                return current + 1
         except Exception as e:
             print(f"Failed to increment views: {e}")
             return 0
@@ -102,8 +79,6 @@ class EventManRedis:
             if self.redis:
                 views = self.redis.get(key)
                 return int(views) if views else 0
-            else:
-                return cache.get(key, 0)
         except Exception as e:
             print(f"Failed to get views: {e}")
             return 0

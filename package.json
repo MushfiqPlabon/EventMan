@@ -7,7 +7,7 @@
     "dev": "tailwindcss -i ./static/src/input.css -o ./static/dist/output.css --watch",
     "build": "tailwindcss -i ./static/src/input.css -o ./static/dist/output.css --minify",
     "vercel-build": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "python manage.py test"
   },
   "repository": {
     "type": "git",
