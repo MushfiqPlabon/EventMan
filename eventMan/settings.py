@@ -156,7 +156,7 @@ LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 
 # Email settings
