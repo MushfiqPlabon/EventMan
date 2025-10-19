@@ -250,9 +250,9 @@ if IS_RENDER:
 # ===== REDIS CONFIGURATION (UPSTASH) =====
 # Redis settings for caching and real-time features
 REDIS_URL = config("REDIS_URL", default="")
-REDIS_TOKEN = config("REDIS_TOKEN", default="")
 
-if REDIS_URL and REDIS_TOKEN:
+
+if REDIS_URL:
     # Configure Django cache with Redis
     CACHES = {
         "default": {
@@ -261,7 +261,6 @@ if REDIS_URL and REDIS_TOKEN:
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
                 "CONNECTION_POOL_KWARGS": {
-                    "password": REDIS_TOKEN,
                     "ssl_cert_reqs": None,
                 },
             },
