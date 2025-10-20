@@ -1,0 +1,5 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for _ in "123456"|make_list %}
+        {% include 'events/_skeleton_event_card.html' %}
+    {% endfor %}
+</div>

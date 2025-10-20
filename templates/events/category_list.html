@@ -6,11 +6,10 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4 md:mb-0">
+        <h1 class="text-4xl font-bold text-primary mb-4 md:mb-0">
             🏷️ Event Categories
         </h1>
-        {% if user.is_authenticated and user.groups.all %}
-            <a href="{% url 'category_create' %}" class="btn-success">
+            <a href="{% url 'category_create' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:animate-pulse">
                 ➕ Create Category
             </a>
         {% endif %}
@@ -18,24 +17,24 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for category in categories %}
-            <div class="card card-hover">
-                <div class="card-body">
-                    <h5 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-                        🏷️ {{ category.name }}
+            <div class="bg-card/60 backdrop-blur-xl border rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div class="p-6">
+                    <h5 class="text-xl font-bold text-foreground mb-3">
+                        <a href="{% url 'event_list' %}?category={{ category.pk }}" class="text-primary hover:underline">🏷️ {{ category.name }}</a>
                     </h5>
-                    <p class="text-gray-600 dark:text-gray-400 mb-4">
+                    <p class="text-muted-foreground mb-4">
                         {{ category.description|default:"No description provided."|truncatewords:20 }}
                     </p>
                     <div class="flex justify-between items-center">
-                        <small class="text-gray-500 dark:text-gray-400">
+                        <small class="text-muted-foreground">
                             📅 {{ category.event_count }} event{{ category.event_count|pluralize }}
                         </small>
                         {% if user.is_authenticated and user.groups.all %}
                             <div class="flex space-x-2">
-                                <a href="{% url 'category_update' category.pk %}" class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 text-lg">
+                                <a href="{% url 'category_update' category.pk %}" class="text-yellow-500 hover:underline hover:scale-105 transition-transform duration-200">
                                     ✏️
                                 </a>
-                                <a href="{% url 'category_delete' category.pk %}" class="text-red-600 hover:text-red-800 dark:text-red-400 text-lg">
+                                <a href="{% url 'category_delete' category.pk %}" class="text-destructive hover:underline hover:scale-105 transition-transform duration-200">
                                     🗑️
                                 </a>
                             </div>
@@ -44,12 +43,12 @@
                 </div>
             </div>
         {% empty %}
-            <div class="col-span-full text-center py-12">
+            <div class="col-span-full text-center py-12 bg-card/60 backdrop-blur-xl border rounded-lg shadow-lg">
                 <div class="text-6xl mb-4">🏷️</div>
-                <h3 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">No categories yet</h3>
-                <p class="text-gray-500 dark:text-gray-400 mb-6">Create your first category to organize events.</p>
+                <h3 class="text-2xl font-bold text-foreground mb-2">No categories yet</h3>
+                <p class="text-muted-foreground mb-6">Create your first category to organize events.</p>
                 {% if user.is_authenticated and user.groups.all %}
-                    <a href="{% url 'category_create' %}" class="btn-success">
+                    <a href="{% url 'category_create' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:animate-pulse">
                         ➕ Create Category
                     </a>
                 {% endif %}

@@ -2,8 +2,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-import cloudinary
-import cloudinary.uploader
 import dj_database_url
 from decouple import config
 
@@ -15,6 +13,7 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-your-secret-key-here"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=True, cast=bool)
+# Debug state logging removed for production
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,localhost").split(",")
 
@@ -25,6 +24,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "cloudinary_storage",
+    "cloudinary",
     "django.contrib.staticfiles",
     "django.contrib.sites",
     # Third party apps
@@ -37,25 +38,16 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "django_filters",
-    "cloudinary_storage",  # Add Cloudinary storage
-    "cloudinary",  # Add Cloudinary
+    "widget_tweaks",
     # Local apps
     "events",
 ]
 
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-    "django_htmx.middleware.HtmxMiddleware",  # HTMX middleware
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-]
+# Import centralized storage configuration
+from events.storage_utils import storage_config
+
+# Get intelligent middleware configuration
+MIDDLEWARE = storage_config.get_middleware_config()
 
 ROOT_URLCONF = "eventMan.urls"
 
@@ -75,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "eventMan.wsgi.app"
+WSGI_APPLICATION = "eventMan.wsgi.application"
 
 # Database
 DATABASES = {
@@ -124,21 +116,53 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# Modern Django 4.2+ STORAGES configuration with intelligent fallback
+STORAGES = storage_config.get_storage_backends()
 
-# Media files
+# Legacy compatibility for cloudinary-storage package
+# The cloudinary-storage package still checks for STATICFILES_STORAGE
+# even when using the new STORAGES configuration
+STATICFILES_STORAGE = STORAGES["staticfiles"]["BACKEND"]
+
+# Static files configuration
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Media files configuration
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-cloudinary.config(
-    cloud_name=config("CLOUDINARY_CLOUD_NAME"),
-    api_key=config("CLOUDINARY_API_KEY"),
-    api_secret=config("CLOUDINARY_API_SECRET"),
-)
+# Static files finders
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+]
+
+# WhiteNoise configuration for optimization
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_MAX_AGE = 31536000 if not DEBUG else 0  # 1 year cache in production
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = [
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp",
+    "zip",
+    "gz",
+    "tgz",
+    "bz2",
+    "tbz",
+    "xz",
+    "br",
+]
+
+# Configure Cloudinary with proper error handling
+from events.storage_utils import configure_cloudinary
+
+cloudinary_configured = configure_cloudinary()
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -176,80 +200,106 @@ if DEBUG:
     INTERNAL_IPS = config("INTERNAL_IPS", default="127.0.0.1").split(",")
 
 # Crispy forms settings
-CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"  # Ensure a custom 'tailwind' template pack is configured or use a standard one like 'bootstrap5'
-CRISPY_TEMPLATE_PACK = "tailwind"
-
-# Custom crispy forms field template
-CRISPY_FIELD_TEMPLATE = "tailwind/field.html"
-CRISPY_LABEL_CLASS = "form-label"
-CRISPY_FIELD_CLASS = "form-input"
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # HTMX settings
 HTMX_REQUIRE_CSRF = True
 
 # ===== PRODUCTION SETTINGS =====
 # Production environment detection
-IS_RENDER = os.environ.get("RENDER") == "true" # Check for Render environment variable
+IS_RENDER = os.environ.get("RENDER") == "true"
+IS_VERCEL = os.environ.get("VERCEL") == "1"
+IS_PRODUCTION = not DEBUG
 
-if IS_RENDER:
-    # Production settings for Render
-    DEBUG = False
-
-    # Render domains
-    ALLOWED_HOSTS = [
-        "eventman-phi-assign.onrender.com", # Add the Render domain
-        "localhost",
-        "127.0.0.1",
-    ]
-
-    # Add custom domain if provided (Render also supports custom domains)
-    RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-    if RENDER_EXTERNAL_HOSTNAME:
-        ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-    # Static files configuration for Render
-    STATIC_URL = "/static/"
-    STATIC_ROOT = BASE_DIR / "staticfiles"
-    STATICFILES_DIRS = [
-        BASE_DIR / "static",
-    ]
-
-    # Media files configuration
-    MEDIA_URL = "/media/"
-    MEDIA_ROOT = BASE_DIR / "media"
-
-    # Security settings for production
+if IS_PRODUCTION:
+    # Production security settings
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
+    SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
-    # CSRF settings for Render
+    # CSRF and session security
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
-    CSRF_TRUSTED_ORIGINS = [
-        "https://*.onrender.com",
-    ]
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
 
-    # Logging configuration for Render
+    # Platform-specific configurations
+    if IS_RENDER:
+        # Render.com specific settings
+        ALLOWED_HOSTS.extend(
+            [
+                "eventman-phi-assign.onrender.com",
+                "*.onrender.com",
+            ]
+        )
+        CSRF_TRUSTED_ORIGINS.extend(
+            [
+                "https://*.onrender.com",
+            ]
+        )
+
+        # Add custom domain if provided
+        RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+        if RENDER_EXTERNAL_HOSTNAME:
+            ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+            CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
+    elif IS_VERCEL:
+        # Vercel specific settings
+        ALLOWED_HOSTS.extend(
+            [
+                "*.vercel.app",
+            ]
+        )
+        CSRF_TRUSTED_ORIGINS.extend(
+            [
+                "https://*.vercel.app",
+            ]
+        )
+
+    # Production logging configuration
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+                "style": "{",
+            },
+        },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
+                "formatter": "verbose",
             },
+        },
+        "root": {
+            "handlers": ["console"],
+            "level": "INFO",
         },
         "loggers": {
             "django": {
                 "handlers": ["console"],
                 "level": "INFO",
+                "propagate": False,
+            },
+            "events": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
             },
         },
     }
 
 # ===== REDIS CONFIGURATION (UPSTASH) =====
 # Redis settings for caching and real-time features
-REDIS_URL = config("REDIS_URL", default="") # Should be a rediss:// URL with embedded password (e.g., rediss://user:password@host:port)
+REDIS_URL = config(
+    "REDIS_URL", default=""
+)  # Should be a rediss:// URL with embedded password (e.g., rediss://user:password@host:port)
 
 
 if REDIS_URL:

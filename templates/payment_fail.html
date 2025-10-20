@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Failed{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 min-h-screen flex items-center justify-center">
+    <div class="bg-card/80 backdrop-blur-xl border border-border/20 rounded-lg p-8 shadow-lg max-w-md w-full text-center animate-fade-in-up">
+        <div class="text-red-500 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-destructive mb-4">Payment Failed!</h1>
+        <p class="text-muted-foreground mb-6">
+            Unfortunately, your payment could not be processed. Please try again or contact support if the issue persists.
+        </p>
+        <a href="{% url 'event_list' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:animate-pulse">
+            Browse Events
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+        </a>
+    </div>
+</div>
+{% endblock %}

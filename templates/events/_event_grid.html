@@ -1,88 +1,29 @@
 {% if events %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for event in events %}
-            <div class="card card-hover">
-                {% if event.image %}
-                    <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
-                {% endif %}
-                
-                <div class="card-body">
-                    <h5 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{{ event.name }}</h5>
-                    
-                    <div class="space-y-2 mb-4">
-                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                            <span class="w-6">📅</span>
-                            <span>{{ event.date|date:"M d, Y" }}</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                            <span class="w-6">🕐</span>
-                            <span>{{ event.time|time:"g:i A" }}</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                            <span class="w-6">📍</span>
-                            <span>{{ event.location }}</span>
-                        </div>
-                        {% if event.category %}
-                            <div class="flex items-center">
-                                <span class="badge badge-secondary">
-                                    🏷️ {{ event.category.name }}
-                                </span>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <p class="text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3">{{ event.description|truncatewords:15 }}</p>
-                    
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                            👥 <span data-participant-count="{{ event.id }}">{{ event.participants.count }}</span> participant{{ event.participants.count|pluralize }}
-                        </span>
-                        
-                        {% if event.is_upcoming %}
-                            <span class="badge badge-success">Upcoming</span>
-                        {% elif event.is_past %}
-                            <span class="badge badge-secondary">Past</span>
-                        {% elif event.is_today %}
-                            <span class="badge badge-warning">Today</span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="flex space-x-2">
-                        {% if user.is_authenticated and event.is_upcoming %}
-                            <button hx-post="{% url 'rsvp_toggle' event.pk %}"
-                                    hx-swap="outerHTML"
-                                    class="{% if user in event.participants.all %}btn-success{% else %}btn-primary{% endif %} text-sm py-2 px-4 flex-1">
-                                {% if user in event.participants.all %}
-                                    ✅ RSVP'd
-                                {% else %}
-                                    📝 RSVP
-                                {% endif %}
-                            </button>
-                        {% endif %}
-                        
-                        <a href="{% url 'event_detail' event.pk %}" class="btn-primary text-sm py-2 px-4 flex-1 text-center">
-                            👁️ View
-                        </a>
-                    </div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for event in events %}
+        <div class="bg-card/60 backdrop-blur-xl border border-border/20 rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+            <a href="{% url 'event_detail' event.pk %}">
+                <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
+            </a>
+            <div class="p-6">
+                <h3 class="font-semibold text-lg mb-2"><a href="{% url 'event_detail' event.pk %}">{{ event.name }}</a></h3>
+                <div class="flex items-center text-sm text-muted-foreground mb-4">
+                    <span>📅 {{ event.date|date:"M d, Y" }}</span>
+                    <span class="mx-2">|</span>
+                    <span>📍 {{ event.location }}</span>
+                </div>
+                <p class="text-sm text-muted-foreground mb-4 line-clamp-2">{{ event.description }}</p>
+                <div class="flex justify-between items-center">
+                    <a href="{% url 'event_detail' event.pk %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:animate-pulse">View Details</a>
+                    <span class="text-sm font-bold">${{ event.ticket_price|floatformat:2 }}</span>
                 </div>
             </div>
-        {% endfor %}
-    </div>
-    
-    <div class="mt-8 text-center">
-        <p class="text-gray-600 dark:text-gray-400">
-            ℹ️ Showing {{ events|length }} event{{ events|length|pluralize }}
-        </p>
-    </div>
+        </div>
+    {% endfor %}
+</div>
 {% else %}
-    <div class="text-center py-12">
-        <div class="text-6xl mb-4">📅</div>
-        <h3 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">No events found</h3>
-        <p class="text-gray-500 dark:text-gray-400 mb-6">Try adjusting your search criteria or check back later.</p>
-        {% if user.is_authenticated and user.groups.all %}
-            <a href="{% url 'event_create' %}" class="btn-success">
-                ➕ Create the first event
-            </a>
-        {% endif %}
-    </div>
+<div class="text-center py-16 bg-card/60 backdrop-blur-xl border rounded-lg animate-fade-in-up">
+    <h3 class="text-2xl font-bold">No Events Found</h3>
+    <p class="text-muted-foreground mt-2">Try adjusting your search criteria.</p>
+</div>
 {% endif %}

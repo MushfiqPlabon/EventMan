@@ -6,11 +6,9 @@ from django.utils import timezone
 from model_utils import Choices
 from model_utils.models import StatusModel, TimeStampedModel
 
-User = get_user_model()
+from .constants import PAYMENT_STATUS_CHOICES, RSVP_STATUS_CHOICES
 
-# Define default image paths
-DEFAULT_EVENT_IMAGE = "event_images/default_event.webp"
-DEFAULT_PROFILE_PICTURE = "profile_pictures/default_profile.webp"
+User = get_user_model()
 
 
 class Category(TimeStampedModel):
@@ -44,7 +42,7 @@ class Event(TimeStampedModel, StatusModel):
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, null=True, blank=True
     )
-    image = models.ImageField(upload_to="event_images/", default=DEFAULT_EVENT_IMAGE)
+    image = models.ImageField(upload_to="event_images/")
     participants = models.ManyToManyField(
         User, related_name="events_joined", blank=True
     )
@@ -55,6 +53,8 @@ class Event(TimeStampedModel, StatusModel):
         blank=True,
         related_name="organized_events",
     )
+    ticket_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    tickets_sold = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["date", "time"]
@@ -85,13 +85,32 @@ class Event(TimeStampedModel, StatusModel):
         return self.participants.count()
 
 
+class Payment(TimeStampedModel):
+    """Payment model to store transaction details"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="payments")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default="pending",
+    )
+
+    class Meta:
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"Payment {self.transaction_id} for {self.event.name}"
+
+
 class Profile(TimeStampedModel):
     """User profile with auto timestamps"""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(
         upload_to="profile_pictures/",
-        default=DEFAULT_PROFILE_PICTURE,
         blank=True,
         null=True,
     )
@@ -103,6 +122,27 @@ class Profile(TimeStampedModel):
 
     def __str__(self):
         return f"{self.user.username} Profile"
+
+
+class RSVP(TimeStampedModel):
+    """RSVP model to track user attendance for events"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rsvps")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="rsvps")
+    status = models.CharField(
+        max_length=20,
+        choices=RSVP_STATUS_CHOICES,
+        default="attending",
+    )
+
+    class Meta:
+        unique_together = ["user", "event"]
+        ordering = ["-created"]
+        verbose_name = "RSVP"
+        verbose_name_plural = "RSVPs"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.event.name} ({self.status})"
 
 
 @receiver(post_save, sender=User)

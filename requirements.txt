@@ -9,6 +9,8 @@ asgiref==3.10.0
     #   django-htmx
 astunparse==1.6.3
     # via hammett
+autoprefixer==0.1.0
+    # via eventman (pyproject.toml)
 certifi==2025.10.5
     # via
     #   cloudinary
@@ -19,15 +21,15 @@ charset-normalizer==3.4.4
     # via requests
 cloudinary==1.44.1
     # via
-    #    (pyproject.toml)
+    #   eventman (pyproject.toml)
     #   django-cloudinary-storage
 crispy-bootstrap5==2025.6
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 dj-database-url==3.0.1
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 django==5.2.7
     # via
-    #    (pyproject.toml)
+    #   eventman (pyproject.toml)
     #   crispy-bootstrap5
     #   dj-database-url
     #   django-allauth
@@ -39,31 +41,39 @@ django==5.2.7
     #   django-model-utils
     #   django-redis
 django-allauth==65.12.1
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 django-braces==1.17.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 django-cloudinary-storage==0.3.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 django-crispy-forms==2.4
     # via
-    #    (pyproject.toml)
+    #   eventman (pyproject.toml)
     #   crispy-bootstrap5
 django-debug-toolbar==6.0.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 django-filter==25.2
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 django-htmx==1.26.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 django-model-utils==5.0.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 django-redis==6.0.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
+django-widget-tweaks==1.5.0
+    # via eventman (pyproject.toml)
+factory-boy==3.3.3
+    # via eventman (pyproject.toml)
+faker==37.11.0
+    # via
+    #   eventman (pyproject.toml)
+    #   factory-boy
 gunicorn==23.0.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 h11==0.16.0
     # via httpcore
 hammett==0.10.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
@@ -73,22 +83,40 @@ idna==3.11
     #   anyio
     #   httpx
     #   requests
+iniconfig==2.3.0
+    # via pytest
+optional-django==0.3.0
+    # via autoprefixer
 packaging==25.0
-    # via gunicorn
+    # via
+    #   gunicorn
+    #   pytest
 pillow==12.0.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
+pluggy==1.6.0
+    # via pytest
 psycopg2-binary==2.9.11
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
+pygments==2.19.2
+    # via pytest
+pytest==8.4.2
+    # via
+    #   eventman (pyproject.toml)
+    #   pytest-django
+pytest-django==4.11.1
+    # via eventman (pyproject.toml)
 python-decouple==3.8
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 python-dotenv==1.1.1
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 redis==6.4.0
     # via django-redis
 requests==2.32.5
-    # via django-cloudinary-storage
+    # via
+    #   django-cloudinary-storage
+    #   sslcommerz-lib
 setuptools==80.9.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 six==1.17.0
     # via
     #   astunparse
@@ -99,10 +127,14 @@ sqlparse==0.5.3
     # via
     #   django
     #   django-debug-toolbar
+sslcommerz-lib==1.0
+    # via eventman (pyproject.toml)
 typing-extensions==4.15.0
     # via anyio
+tzdata==2025.2
+    # via faker
 upstash-redis==1.4.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)
 urllib3==2.5.0
     # via
     #   cloudinary
@@ -110,4 +142,4 @@ urllib3==2.5.0
 wheel==0.45.1
     # via astunparse
 whitenoise==6.11.0
-    # via  (pyproject.toml)
+    # via eventman (pyproject.toml)

@@ -1,105 +1,109 @@
 {% extends "base.html" %}
-
-{% block title %}Welcome to EventMan{% endblock %}
+{% load i18n %}{% block title %}EventMan - The Future of Event Management{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto">
+<div class="container mx-auto px-4">
+
     <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-8 md:p-12 text-center mb-12">
-        <div class="text-6xl md:text-8xl mb-6">🗓️</div>
-        <h1 class="text-4xl md:text-6xl font-bold mb-4">Welcome to EventMan</h1>
-        <p class="text-xl md:text-2xl text-blue-100 mb-8">Your ultimate event management platform with real-time updates</p>
-        <div class="flex flex-col sm:flex-row justify-center gap-4">
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard_redirect' %}" class="bg-white text-blue-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 transform hover:scale-105">
-                    📊 Go to Dashboard
-                </a>
-                <a href="{% url 'event_list' %}" class="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200">
-                    📅 Browse Events
-                </a>
-            {% else %}
-                <a href="{% url 'account_signup' %}" class="bg-white text-blue-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 transform hover:scale-105">
-                    ✨ Get Started
-                </a>
-                <a href="{% url 'event_list' %}" class="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200">
-                    📅 Browse Events
-                </a>
-            {% endif %}
+    <section class="text-center py-20 sm:py-32">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter animate-fade-in-down">
+            The Future of Event Management is Here
+        </h1>
+        <p class="max-w-2xl mx-auto mt-6 text-lg text-muted-foreground animate-fade-in-up">
+            From small meetups to large-scale conferences, EventMan provides the tools you need to create, manage, and grow your events seamlessly.
+        </p>
+        <div class="mt-8 flex justify-center gap-4">
+            <a href="{% url 'event_list' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-8 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:animate-pulse animate-bounce-in">
+                Browse Events
+            </a>
+            <a href="{% url 'account_signup' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-8 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:animate-pulse animate-bounce-in-delay">
+                Get Started
+            </a>
         </div>
-    </div>
+    </section>
 
-    <!-- Stats Section -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        <div class="text-center p-6 bg-blue-50 dark:bg-blue-900 rounded-xl">
-            <div class="text-5xl mb-4">📅</div>
-            <h3 class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ total_events }}</h3>
-            <p class="text-gray-600 dark:text-gray-400">Total Events</p>
-        </div>
-        <div class="text-center p-6 bg-green-50 dark:bg-green-900 rounded-xl">
-            <div class="text-5xl mb-4">🏷️</div>
-            <h3 class="text-3xl font-bold text-green-600 dark:text-green-400">{{ total_categories }}</h3>
-            <p class="text-gray-600 dark:text-gray-400">Categories</p>
-        </div>
-        <div class="text-center p-6 bg-purple-50 dark:bg-purple-900 rounded-xl">
-            <div class="text-5xl mb-4">🔴</div>
-            <h3 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                <span class="live-badge">LIVE</span>
-            </h3>
-            <p class="text-gray-600 dark:text-gray-400">Real-time Updates</p>
-        </div>
-    </div>
-
-    <!-- Featured Events -->
-    {% if featured_events %}
-        <div class="mb-12">
-            <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-8 text-center">
-                ⭐ Featured Upcoming Events
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {% for event in featured_events %}
-                    <div class="card card-hover">
-                        {% if event.image %}
-                            <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{{ event.name }}</h5>
-                            <p class="text-gray-600 dark:text-gray-400 mb-4">{{ event.description|truncatewords:15 }}</p>
-                            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                <span class="mr-2">📅</span>
-                                <span>{{ event.date|date:"M d, Y" }}</span>
-                            </div>
-                            <a href="{% url 'event_detail' event.pk %}" class="btn-primary w-full text-center">
-                                👁️ View Details
-                            </a>
-                        </div>
+    <!-- Featured Events Section -->
+    <section class="py-16">
+        <h2 class="text-3xl font-bold text-center mb-10">Featured Events</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for event in featured_events %}
+                <div class="card bg-card/80 backdrop-blur-xl border-border/20 rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:animate-pulse animate-fade-in-up animate-delay-200">
+                    <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="font-semibold text-lg mb-2">{{ event.name }}</h3>
+                        <p class="text-sm text-muted-foreground mb-4">{{ event.description|truncatewords:15 }}</p>
+                        <a href="{% url 'event_detail' event.pk %}" class="text-sm font-medium text-primary hover:underline">View Details →</a>
                     </div>
-                {% endfor %}
-            </div>
-            <div class="text-center">
-                <a href="{% url 'event_list' %}" class="btn-primary text-lg py-3 px-8">
-                    📅 View All Events
-                </a>
-            </div>
+                </div>
+            {% endfor %}
         </div>
-    {% endif %}
+    </section>
 
     <!-- Features Section -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="text-center p-6">
-            <div class="text-6xl text-blue-500 mb-4">⚡</div>
-            <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Real-time Updates</h4>
-            <p class="text-gray-600 dark:text-gray-400">Live RSVP tracking, instant search results, and auto-updating dashboards.</p>
+    <section class="py-16">
+        <div class="text-center">
+            <h2 class="text-3xl font-bold">Why Choose EventMan?</h2>
+            <p class="text-muted-foreground mt-3 max-w-2xl mx-auto">Everything you need to manage your events, all in one place.</p>
         </div>
-        <div class="text-center p-6">
-            <div class="text-6xl text-green-500 mb-4">📱</div>
-            <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Mobile Responsive</h4>
-            <p class="text-gray-600 dark:text-gray-400">Perfect experience on any device - desktop, tablet, or mobile.</p>
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div class="bg-card/80 backdrop-blur-xl border rounded-lg shadow-lg p-6 animate-fade-in-up animate-delay-300 interactive-effect">
+                <h3 class="text-lg font-semibold">Real-time Analytics</h3>
+                <p class="text-muted-foreground mt-2">Track RSVPs, ticket sales, and engagement as it happens.</p>
+            </div>
+            <div class="bg-card/80 backdrop-blur-xl border rounded-lg shadow-lg p-6 animate-fade-in-up animate-delay-400 interactive-effect">
+                <h3 class="text-lg font-semibold">Seamless Payments</h3>
+                <p class="text-muted-foreground mt-2">Integrated payment gateway for easy ticket sales.</p>
+            </div>
+            <div class="bg-card/80 backdrop-blur-xl border rounded-lg shadow-lg p-6 animate-fade-in-up animate-delay-500 interactive-effect">
+                <h3 class="text-lg font-semibold">Beautiful & Responsive</h3>
+                <p class="text-muted-foreground mt-2">A great experience on any device, for you and your attendees.</p>
+            </div>
         </div>
-        <div class="text-center p-6">
-            <div class="text-6xl text-purple-500 mb-4">🛡️</div>
-            <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Secure & Reliable</h4>
-            <p class="text-gray-600 dark:text-gray-400">Built with Django security best practices and reliable infrastructure.</p>
+    </section>
+
+    <!-- Live Statistics Section -->
+    <section class="py-16">
+        <div id="live-stats-container" hx-get="{% url 'live_stats_htmx' %}" hx-trigger="every 10s" hx-swap="outerHTML" hx-indicator="#live-stats-skeleton">
+            {% include 'events/_live_stats.html' %}
         </div>
-    </div>
+        <div id="live-stats-skeleton" class="htmx-indicator">
+            {% include 'events/_skeleton_live_stats.html' %}
+        </div>
+    </section>
+
+    <!-- About Us Section -->
+    <section class="py-16 text-center">
+        <h2 class="text-3xl font-bold">About Us</h2>
+        <p class="max-w-3xl mx-auto mt-4 text-muted-foreground">
+            EventMan is dedicated to revolutionizing event management. Our platform provides a seamless experience for organizers to plan, promote, and execute events of all sizes, from intimate workshops to large-scale conferences. We empower communities by simplifying the complexities of event coordination, fostering connections, and creating memorable experiences for attendees worldwide. Our commitment to innovation and user-centric design drives us to continuously enhance our tools and services.
+        </p>
+    </section>
+
+    <!-- Contact Us Section -->
+    <section class="py-16">
+        <div class="text-center">
+            <h2 class="text-3xl font-bold">Contact Us</h2>
+            <p class="text-muted-foreground mt-3">Have a question, need support, or want to explore partnership opportunities? Our team is here to help. Reach out to us, and we'll get back to you as soon as possible.</p>
+            <div class="mt-6">
+                <a href="{% url 'contact' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-8 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:animate-pulse">
+                    Get in Touch
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="py-20">
+        <div class="bg-card/80 backdrop-blur-xl border rounded-lg p-12 text-center shadow-lg">
+            <h2 class="text-3xl font-bold">Ready to Create Your Next Event?</h2>
+            <p class="text-muted-foreground mt-4 max-w-xl mx-auto">Join thousands of organizers who trust EventMan to power their events. Get started for free today.</p>
+            <div class="mt-8">
+                <a href="{% url 'account_signup' %}" class="inline-flex items-center justify-center rounded-md text-lg font-medium h-12 px-10 bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-transform transform hover:scale-105 hover:animate-pulse">
+                    Sign Up for Free
+                </a>
+            </div>
+        </div>
+    </section>
+
 </div>
 {% endblock %}

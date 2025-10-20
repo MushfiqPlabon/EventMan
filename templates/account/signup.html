@@ -1,63 +1,46 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load account socialaccount %}
+{% load widget_tweaks %}
 
 {% block title %}{% trans "Sign Up" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-    <h1 class="text-3xl font-bold text-center text-blue-600 dark:text-blue-400 mb-6">{% trans "Sign Up" %}</h1>
-
-    {% if socialaccounts %}
-    <div class="mb-4 text-center">
-        <p>{% blocktrans with site.name as site_name %}Please sign up with one of your existing third party accounts.{% endblocktrans %}</p>
-        <ul class="socialaccount_providers">
-            {% include "socialaccount/snippets/provider_list.html" with process="signup" %}
-        </ul>
-    </div>
-    {% endif %}
-
-    <form class="signup space-y-4" id="signup_form" method="POST" action="{% url 'account_signup' %}">
-        {% csrf_token %}
-        {% for field in form %}
-            <div>
-                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                {% if field.name == 'email' %}
-                    <input type="email" name="{{ field.name }}" id="{{ field.id_for_label }}" 
-                           class="form-input" placeholder="your@email.com" 
-                           value="{{ field.value|default:'' }}" required autocomplete="email">
-                {% elif field.name == 'first_name' %}
-                    <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" 
-                           class="form-input" placeholder="First Name" 
-                           value="{{ field.value|default:'' }}" required autocomplete="given-name">
-                {% elif field.name == 'last_name' %}
-                    <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" 
-                           class="form-input" placeholder="Last Name" 
-                           value="{{ field.value|default:'' }}" required autocomplete="family-name">
-                {% elif 'password' in field.name %}
-                    <input type="password" name="{{ field.name }}" id="{{ field.id_for_label }}" 
-                           class="form-input" placeholder="Password" required autocomplete="new-password">
-                {% else %}
-                    {{ field }}
-                {% endif %}
-                {% if field.help_text %}
-                    <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">{{ field.help_text }}</p>
-                {% endif %}
-                {% for error in field.errors %}
-                    <p class="form-error">{{ error }}</p>
-                {% endfor %}
+<div class="container mx-auto flex min-h-[80vh] items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md">
+        <div class="bg-card/80 backdrop-blur-xl border border-border/20 rounded-lg p-8 shadow-lg animate-fade-in-up">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold">Create an Account</h1>
+                <p class="text-muted-foreground">Enter your information to get started</p>
             </div>
-        {% endfor %}
-        
-        {% if redirect_field_value %}
-        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-        {% endif %}
-        
-        <button class="btn-primary w-full" type="submit">{% trans "Sign Up" %}</button>
-    </form>
-    <p class="mt-4 text-center text-gray-700 dark:text-gray-300">
-        {% blocktrans %}Already have an account?{% endblocktrans %}
-        <a class="text-blue-500 hover:underline" href="{% url 'account_login' %}">➡️ {% trans "Sign In" %}</a>
-    </p>
+
+            <form class="signup space-y-4" id="signup_form" method="POST" action="{% url 'account_signup' %}">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="text-sm font-medium text-muted-foreground">{{ field.label }}</label>
+                        {{ field|add_class:"mt-1 block w-full rounded-md border-input bg-transparent p-3 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" }}
+                        {% if field.help_text %}
+                            <p class="text-muted-foreground text-xs mt-1">{{ field.help_text|safe }}</p>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <p class="text-destructive text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                
+                {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+                
+                <button type="submit" class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:animate-pulse">{% trans "Sign Up" %}</button>
+            </form>
+
+            <p class="mt-6 text-center text-sm text-muted-foreground">
+                Already have an account? 
+                <a class="font-semibold text-primary hover:underline" href="{% url 'account_login' %}">Sign In</a>
+            </p>
+        </div>
+    </div>
 </div>
 {% endblock %}
