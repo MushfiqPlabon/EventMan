@@ -3,7 +3,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
-from decouple import config
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -211,6 +211,8 @@ HTMX_REQUIRE_CSRF = True
 IS_RENDER = os.environ.get("RENDER") == "true"
 IS_VERCEL = os.environ.get("VERCEL") == "1"
 IS_PRODUCTION = not DEBUG
+
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 
 if IS_PRODUCTION:
     # Production security settings
