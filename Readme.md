@@ -170,29 +170,27 @@ Follow these steps to get EventMan up and running on your local machine:
     ```
     The application will be accessible at http://127.0.0.1:8000/.
 
-## Deployment on Vercel
+## Deployment on Render
 
-This project is configured for serverless deployment on Vercel. Follow these steps to deploy:
+This project is configured for deployment on Render. Follow these steps to deploy:
 
 1.  **External Service Setup:**
-    *   **Database:** Set up an external PostgreSQL database (e.g., ElephantSQL, Supabase, Render PostgreSQL) and obtain its connection URL.
-    *   **Redis:** Set up an external Redis service (e.g., Upstash Redis, Redis Cloud) and obtain its URL and token.
+    *   **Database:** Set up an external PostgreSQL database (e.g., ElephantSQL, Supabase, or a Render PostgreSQL instance) and obtain its connection URL.
+    *   **Redis:** Set up an external Redis service (e.g., Upstash Redis or a Render Redis instance) and obtain its URL.
     *   **Cloudinary:** Create a Cloudinary account and obtain your Cloud Name, API Key, and API Secret.
     *   **Email:** Configure an SMTP service for sending emails (e.g., Gmail, SendGrid) and obtain the necessary credentials.
 
-2.  **Vercel Project Setup:**
-    *   Create a new project on Vercel and link it to your Git repository.
+2.  **Render Project Setup:**
+    *   Create a new "Web Service" on Render and link it to your Git repository.
 
-3.  **Configure Environment Variables on Vercel:**
-    *   In your Vercel project settings, go to "Environment Variables" and add all the variables listed in `.env.example` with their actual values from your external services. **Crucially, set `DEBUG` to `False` for production.**
+3.  **Configure Environment on Render:**
+    *   **Environment Variables:** In your Render service settings, go to "Environment" and add all the variables listed in `.env.example` with their actual values from your external services. **Crucially, set `DEBUG` to `False` for production.**
+    *   **Build Command:** Set the build command to `./build.sh`. This script will install Node.js dependencies and build the Tailwind CSS assets. Render will automatically install Python dependencies from your `pyproject.toml` file.
+    *   **Start Command:** For production, you should use a production-ready web server like Gunicorn. Set the start command to `gunicorn eventMan.wsgi`.
+    *   **Database Migrations:** Render can run database migrations on deploy. You can add `python manage.py migrate` as a post-deploy command in the Render dashboard, or add it to your `build.sh` script.
 
-4.  **Build Configuration:**
-    *   The project includes `vercel.json` and `build.sh` which are pre-configured for Vercel deployment.
-    *   `vercel.json` defines the Python runtime (`python3.12`), handles static file serving, and routes requests to your Django WSGI application.
-    *   `build.sh` automates the installation of Python dependencies (using `pip install -r requirements.txt` from a `uv`-generated file), Node.js dependencies, Tailwind CSS build, static file collection, and database migrations.
-
-5.  **Deployment:**
-    *   Once environment variables are set and the project is linked, Vercel will automatically build and deploy your application on every push to your connected Git branch.
+4.  **Deployment:**
+    *   Once the service is configured, Render will automatically build and deploy your application on every push to your connected Git branch.
 
 ## Testing and Usage 🧪
 
