@@ -55,12 +55,8 @@ def test_initiate_payment_authenticated_success(
     sslcommerz_mock.createSession.return_value = {
         "status": "SUCCESS",
         "GatewayPageURL": "https://sandbox.sslcommerz.com/gwprocess/v4/url.php?am=123",
+    }
     response = client.post(reverse("initiate_payment", kwargs={"pk": event.pk}))
-
-    payment = Payment.objects.first()
-    assert payment.status == "Failed"
-    assert response.status_code == 302
-    assert response.url == reverse("event_detail", kwargs={"pk": event.pk})
 
     assert Payment.objects.count() == 1
     payment = Payment.objects.first()
@@ -74,7 +70,7 @@ def test_initiate_payment_authenticated_success(
     assert response.url == "https://sandbox.sslcommerz.com/gwprocess/v4/url.php?am=123"
 
 
-    @pytest.mark.django_db
+@pytest.mark.django_db
 def test_initiate_payment_unauthenticated(client, event):
     response = client.post(reverse("initiate_payment", kwargs={"pk": event.pk}))
     assert response.status_code == 302

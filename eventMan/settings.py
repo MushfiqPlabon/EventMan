@@ -3,7 +3,9 @@ from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
-from decouple import config, Csv
+from decouple import Csv, config
+
+from events.storage_utils import configure_cloudinary, storage_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,9 +45,6 @@ INSTALLED_APPS = [
     "events",
 ]
 
-# Import centralized storage configuration
-from events.storage_utils import storage_config
-
 # Get intelligent middleware configuration
 MIDDLEWARE = storage_config.get_middleware_config()
 
@@ -67,7 +66,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "eventMan.wsgi.application"
+WSGI_APPLICATION = "eventMan.wsgi.app"
 
 # Database
 DATABASES = {
@@ -159,8 +158,6 @@ WHITENOISE_SKIP_COMPRESS_EXTENSIONS = [
 ]
 
 # Configure Cloudinary with proper error handling
-from events.storage_utils import configure_cloudinary
-
 cloudinary_configured = configure_cloudinary()
 
 
@@ -212,7 +209,7 @@ IS_RENDER = os.environ.get("RENDER") == "true"
 IS_VERCEL = os.environ.get("VERCEL") == "1"
 IS_PRODUCTION = not DEBUG
 
-CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default=[], cast=Csv())
 
 if IS_PRODUCTION:
     # Production security settings
