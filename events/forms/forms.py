@@ -4,7 +4,7 @@ from crispy_forms.layout import HTML, Column, Field, Layout, Row, Submit
 from django import forms
 from django.contrib.auth import get_user_model
 
-from .models import Category, Event, Profile
+from events.models import RSVP, Category, Event, Profile
 
 User = get_user_model()
 
@@ -272,4 +272,20 @@ class EventSearchForm(forms.Form):
                 '<div class="text-muted small">Results update automatically as you type or change filters</div>'
             ),
             HTML("</div></div>"),
+        )
+
+
+class RSVPForm(forms.ModelForm):
+    """Form for RSVPing to an event"""
+
+    class Meta:
+        model = RSVP
+        fields = []  # No fields needed for a simple RSVP, just the user and event
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = "post"
+        self.helper.layout = Layout(
+            Submit("submit", "RSVP", css_class="btn btn-primary")
         )

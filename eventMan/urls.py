@@ -16,6 +16,7 @@ Including another URLconf
 """
 
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
@@ -25,6 +26,17 @@ urlpatterns = [
     path("", include("events.urls")),  # Directs root URL to events app's URLs
 ]
 
-# Add debug toolbar URLs only during development
+# Serve static and media files during development
 if settings.DEBUG:
+    # Import storage utilities to check configuration
+    from events.storage_utils import storage_config
+
+    # Always serve static files in development
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+    # Serve media files locally if not using Cloudinary
+    if not storage_config.validate_cloudinary_config():
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    # Add debug toolbar URLs
     urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))

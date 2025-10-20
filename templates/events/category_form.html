@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load widget_tweaks %}
 
 {% block title %}
     {% if object %}Edit Category{% else %}Create Category{% endif %}
@@ -7,9 +8,9 @@
 
 {% block content %}
 <div class="max-w-2xl mx-auto">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">
+    <div class="bg-card/80 backdrop-blur-xl border border-border/20 rounded-lg p-8 shadow-lg">
+        <div class="pb-4 mb-4 border-b border-border/20">
+            <h3 class="text-xl font-bold text-foreground">
                 {% if object %}
                     ✏️ Edit Category
                 {% else %}
@@ -17,18 +18,24 @@
                 {% endif %}
             </h3>
         </div>
-        <div class="card-body">
             <form method="post" class="space-y-6">
                 {% csrf_token %}
                 {% crispy form %}
+                <style>
+                    input:focus,
+                    select:focus,
+                    textarea:focus {
+                        @apply focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+                    }
+                </style>
                 <div class="flex justify-end space-x-4">
-                    <a href="{% url 'category_list' %}" class="btn-secondary">Cancel</a>
-                    <button type="submit" class="btn-primary">
+                    <a href="{% url 'category_list' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:animate-pulse">Cancel</a>
+                    <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:animate-pulse">
                         {% if object %}Update Category{% else %}Create Category{% endif %}
                     </button>
                 </div>
             </form>
-        </div>
+
     </div>
 </div>
 {% endblock %}

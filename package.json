@@ -35,5 +35,8 @@
   "engines": {
     "node": ">=16.x",
     "npm": ">=8.x"
+  },
+  "dependencies": {
+    "tailwindcss-animate": "^1.0.7"
   }
 }

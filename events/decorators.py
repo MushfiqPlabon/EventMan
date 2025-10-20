@@ -1,23 +1,28 @@
 from django.contrib.auth.decorators import user_passes_test
-from django.urls import reverse_lazy  # Use reverse_lazy for decorators
+from django.urls import reverse_lazy
+
+from .constants import UserGroups
 
 
 def is_admin(user):
-    """Checks if the user is a superuser or has the 'Admin' group membership."""
+    """Checks if the user is a superuser or has the Admin group membership."""
     return user.is_authenticated and (
-        user.is_superuser or user.groups.filter(name="Admin").exists()
+        user.is_superuser or user.groups.filter(name=UserGroups.ADMIN).exists()
     )
 
 
 def is_organizer(user):
-    """Checks if the user has the 'Organizer' group membership."""
-    return user.is_authenticated and user.groups.filter(name="Organizer Users").exists()
+    """Checks if the user has the Organizer group membership."""
+    return (
+        user.is_authenticated and user.groups.filter(name=UserGroups.ORGANIZER).exists()
+    )
 
 
 def is_participant(user):
-    """Checks if the user has the 'Participant' group membership."""
+    """Checks if the user has the Participant group membership."""
     return (
-        user.is_authenticated and user.groups.filter(name="Participant Users").exists()
+        user.is_authenticated
+        and user.groups.filter(name=UserGroups.PARTICIPANT).exists()
     )
 
 

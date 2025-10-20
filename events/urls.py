@@ -1,14 +1,19 @@
 from django.urls import path
 
+from . import views
 from .views import (AdminDashboardView, CachedDashboardStatsView,
                     CachedEventDetailView, CategoryCreateView,
                     CategoryDeleteView, CategoryListView, CategoryUpdateView,
-                    CustomPasswordChangeDoneView, CustomPasswordChangeView,
-                    DashboardRedirectView, EventCreateView, EventDeleteView,
-                    EventListView, EventUpdateView, HealthCheckView, HomeView,
+                    CheckoutView, CustomPasswordChangeDoneView,
+                    CustomPasswordChangeView, DashboardRedirectView,
+                    EventCreateView, EventDeleteView, EventListView,
+                    EventUpdateView, HealthCheckView, HomeView,
                     OrganizerDashboardView, ParticipantDashboardView,
                     ParticipantListView, ProfileDetailView, ProfileUpdateView,
-                    RSVPToggleView)
+                    RSVPToggleView, get_admin_payments_htmx,
+                    get_admin_stats_htmx, get_live_stats_htmx,
+                    get_organizer_events_htmx, get_organizer_stats_htmx,
+                    get_participant_payments_htmx)
 
 urlpatterns = [
     # Home and dashboard URLs
@@ -36,6 +41,7 @@ urlpatterns = [
     path("events/new/", EventCreateView.as_view(), name="event_create"),
     path("events/<int:pk>/edit/", EventUpdateView.as_view(), name="event_update"),
     path("events/<int:pk>/delete/", EventDeleteView.as_view(), name="event_delete"),
+    path("events/<int:pk>/checkout/", CheckoutView.as_view(), name="event_checkout"),
     path("events/<int:pk>/rsvp/", RSVPToggleView.as_view(), name="rsvp_toggle"),
     # Category URLs
     path("categories/", CategoryListView.as_view(), name="category_list"),
@@ -63,4 +69,24 @@ urlpatterns = [
     ),
     # Health check for Vercel
     path("health/", HealthCheckView.as_view(), name="health_check"),
+    path("live-stats/", get_live_stats_htmx, name="live_stats_htmx"),
+    path(
+        "participant-payments/",
+        get_participant_payments_htmx,
+        name="participant_payments_htmx",
+    ),
+    path("organizer-stats/", get_organizer_stats_htmx, name="organizer_stats_htmx"),
+    path("organizer-events/", get_organizer_events_htmx, name="organizer_events_htmx"),
+    path("admin-stats/", get_admin_stats_htmx, name="admin_stats_htmx"),
+    path("admin-payments/", get_admin_payments_htmx, name="admin_payments_htmx"),
+    # Payment URLs
+    path(
+        "event/<int:pk>/initiate_payment/",
+        views.initiate_payment,
+        name="initiate_payment",
+    ),
+    path("payment_success/", views.payment_success, name="payment_success"),
+    path("payment_fail/", views.payment_fail, name="payment_fail"),
+    path("payment_ipn/", views.payment_ipn, name="payment_ipn"),
+    path("contact/", views.contact_view, name="contact"),  # New contact page URL
 ]

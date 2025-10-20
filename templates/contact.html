@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact Us - EventMan{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-2xl mx-auto bg-card/80 backdrop-blur-xl border border-border/20 rounded-lg shadow-lg p-8 animate-fade-in-down">
+        <h2 class="text-3xl font-bold text-center mb-6">Contact Us</h2>
+        <p class="text-muted-foreground text-center mb-8">Have a question, need support, or want to explore partnership opportunities? Fill out the form below, and we'll get back to you as soon as possible.</p>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label for="id_name" class="block text-sm font-medium text-foreground mb-1">Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.name.errors }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="id_email" class="block text-sm font-medium text-foreground mb-1">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.email.errors }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="id_subject" class="block text-sm font-medium text-foreground mb-1">Subject</label>
+                {{ form.subject }}
+                {% if form.subject.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.subject.errors }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="id_message" class="block text-sm font-medium text-foreground mb-1">Message</label>
+                {{ form.message }}
+                {% if form.message.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.message.errors }}</p>
+                {% endif %}
+            </div>
+            <button type="submit" class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/90 transition-transform transform hover:scale-105 interactive-effect">
+                Send Message
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -2,9 +2,9 @@
 
 ## Overview
 
-EventMan is a comprehensive web-based Event Management System built with Django, designed to provide a robust platform for organizing, managing, and participating in various events. This project serves as an assignment for Week 3, Module 9, updated as a part of Week 4, Module 14, further updated on Week 5, Module 18 (mid-term-exam) of Phitron's Software Development Track (SDT)'s Software Development Project (SDP) course, demonstrating advanced Django features and a modern frontend with Tailwind CSS.
+EventMan is a comprehensive web-based Event Management System built with Django, designed to provide a robust platform for organizing, managing, and participating in various events. This project originally served as an assignment for Week 3, Module 9, updated as a part of Week 4, Module 14, further updated on Week 5, Module 18 (mid-term-exam) of Phitron's Software Development Track (SDT)'s Software Development Project (SDP) course, demonstrating advanced Django features and a modern frontend with Tailwind CSS. But I have changed a lot of stuff around since then.
 
-The application empowers organizers with efficient management tools and provides participants with a user-friendly experience, complete with authentication, role-based access, and RSVP functionality.
+The application now features a modern, visually stunning "Reactive Glass UI" with comprehensive glassmorphism, real-time reactivity powered by HTMX, and enhanced microinteractions for a truly engaging user experience. It empowers organizers with efficient management tools and provides participants with a user-friendly experience, complete with authentication, role-based access, and RSVP functionality.
 
 ## Live Demo
 
@@ -14,6 +14,10 @@ Experience EventMan in action: [https://eventman-phi-assign.onrender.com/]
 
 ## Features
 
+- **UI/UX Overhaul: Reactive Glass UI:** A modern, visually stunning design with comprehensive glassmorphism, transparency, blur, and consistent styling across the entire application.
+- **Real-time Reactivity (HTMX):** Dynamic content updates and seamless microinteractions across the UI, including live statistics on the homepage and real-time updates on all dashboards (Participant, Organizer, Admin).
+- **Enhanced Microinteractions:** Subtle and engaging animations on interactive elements (buttons, cards, links, form inputs) for hover, focus, click, and state changes, powered by `tailwindcss-animate`. This includes a consolidated and enhanced notification system, smooth HTMX content transitions, and improved focus/hover effects for form inputs and interactive elements.
+- **Payment Gateway Integration (SSLCommerz):** Secure and seamless payment processing for events, including a dedicated checkout page and graceful handling of payment responses.
 - **User Authentication & Authorization:** Secure user signup, login, and logout.
 - **Email Activation:** Mandatory email verification for new accounts with secure activation links.
 - **Custom Signup Fields:** Includes additional fields like first name and last name during user registration.
@@ -21,7 +25,7 @@ Experience EventMan in action: [https://eventman-phi-assign.onrender.com/]
   - **Admin:** Full access to all features, including user and group management.
   - **Organizer:** Can create, update, and delete events and categories they manage.
   - **Participant:** Can view events and RSVP to them.
-- **User-Specific Dashboards:** Redirects users to their respective dashboards (Admin, Organizer, Participant) upon login.
+- **User-Specific Dashboards:** Redirects users to their respective dashboards (Admin, Organizer, Participant) upon login, with real-time updates for key metrics and data.
 - **Comprehensive Dashboard:** An intuitive homepage for organizers providing a quick overview of key metrics:
   - Total number of events.
   - Total registered participants across all events.
@@ -49,14 +53,15 @@ Experience EventMan in action: [https://eventman-phi-assign.onrender.com/]
 
 ## Technologies Used
 
-- **Backend:** Python, Django
+- **Backend:** Python, Django, `sslcommerz-lib`
+- **Testing:** `pytest`, `pytest-django`, `hammett`, `factory-boy`, `Faker`, `pytest-mock`
 - **Authentication:** `django-allauth`
 - **Debugging:** `django-debug-toolbar`
 - **Database:** Configurable for PostgreSQL (production/deployment), SQLite (local development fallback)
 - **Caching & Real-time:** Redis (`django-redis`, `upstash-redis`)
 - **Media Storage:** Cloudinary (`django-cloudinary-storage`)
-- **Frontend:** HTML, CSS (Tailwind CSS v3), JavaScript
-- **Frontend Tooling:** Tailwind CSS CLI, PostCSS, Autoprefixer (for compiling CSS)
+- **Frontend:** HTML, CSS (Tailwind CSS v3), JavaScript, `htmx.org`
+- **Frontend Tooling:** Tailwind CSS CLI, PostCSS, Autoprefixer (for compiling CSS), `tailwindcss-animate`
 - **Dependency Management:** `uv`
 - **Deployment:** Vercel
 
@@ -150,7 +155,16 @@ Follow these steps to get EventMan up and running on your local machine:
     4.  Navigate to "Groups" (under "Authentication and Authorization").
     5.  Add two new groups: `Organizer` and `Participant`.
 
-11. **Run the Django development server:**
+12. **Run Tests (Optional but Recommended):**
+    This project uses `pytest` for comprehensive testing. Ensure your virtual environment is active.
+
+    ```bash
+    uv run pytest
+    ```
+
+    Test configurations, including global mocks for static files and Cloudinary, are managed in `conftest.py` at the project root.
+
+13. **Run the Django development server:**
     ```bash
     python manage.py runserver
     ```
@@ -182,9 +196,31 @@ This project is configured for serverless deployment on Vercel. Follow these ste
 
 ## Testing and Usage 🧪
 
+### Comprehensive Test Suite
+This project features a robust and comprehensive backend test suite built with `pytest` and `hammett`. It leverages `factory-boy` and `Faker` for efficient and dynamic test data generation, ensuring thorough coverage of core functionalities.
+
+**Key aspects of the test suite:**
+*   **Frameworks:** `pytest`, `pytest-django`, `hammett`, `factory-boy`, `Faker`, `pytest-mock`.
+*   **Coverage:** Dedicated test files for:
+    *   Models (`events/tests/test_models.py`)
+    *   Views (`events/tests/test_views.py`)
+    *   Forms (`events/tests/test_forms.py`)
+    *   Signals (`events/tests/test_signals.py`)
+    *   Management Commands (`events/tests/test_management_commands.py`)
+    *   Payment Gateway Integration (`events/tests/test_payments.py`)
+    *   Dashboards (`events/tests/test_dashboards.py`)
+*   **Dynamic Data:** Utilizes `factory-boy` and `Faker` to create realistic and varied test data on-the-fly, reducing boilerplate and improving test maintainability.
+*   **Mocks:** Employs `pytest-mock` for effective mocking of external dependencies (e.g., Cloudinary uploads, SSLCommerz API calls, static file lookups) to ensure fast and isolated tests.
+*   **Global Fixtures:** Common test setup (like global mocks) is managed in `conftest.py` at the project root.
+
+To run the tests, ensure your virtual environment is active and execute:
+```bash
+uv run pytest
+```
+
 ### Populating Demo Data
 
-To quickly set up your database with sample users, categories, and events for testing and demonstration purposes, use the `populate_demo_data` management command.
+To quickly set up your database with sample users, categories, and events for testing and demonstration purposes, **especially to experience the new UI/UX and real-time features**, use the `populate_demo_data` management command.
 
 ```bash
 python manage.py populate_demo_data

@@ -1,28 +1,66 @@
 import json
 
 from braces.views import GroupRequiredMixin, SuperuserRequiredMixin
+from decouple import config
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import (PasswordChangeDoneView,
                                        PasswordChangeView)
+from django.core.mail import send_mail
+from django.db import models
 from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   TemplateView, UpdateView, View)
 from django_filters.views import FilterView
 
+from .constants import UserGroups
 from .filters import CategoryFilter, EventFilter
-from .forms import CategoryForm, EventForm, EventSearchForm, ProfileForm
-from .models import Category, Event, Profile
+from .forms.contact_form import ContactForm
+from .forms.forms import CategoryForm, EventForm, EventSearchForm, ProfileForm
+from .models import Category, Event, Payment, Profile
+from .payment_utils import payment_handler
 from .redis_utils import redis_client
 
 User = get_user_model()
+
+
+# Contact View
+def contact_view(request):
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            email = form.cleaned_data["email"]
+            subject = form.cleaned_data["subject"]
+            message = form.cleaned_data["message"]
+
+            full_message = f"Name: {name}\nEmail: {email}\n\n{message}"
+
+            try:
+                send_mail(
+                    subject,  # Email subject
+                    full_message,  # Email body
+                    settings.DEFAULT_FROM_EMAIL,  # From email
+                    [config("CONTACT_EMAIL", default="admin@eventman.com")],  # To email
+                    fail_silently=False,
+                )
+                messages.success(request, "Your message has been sent successfully!")
+                return redirect("contact")  # Redirect to the contact page (GET request)
+            except Exception as e:
+                messages.error(request, f"There was an error sending your message: {e}")
+    else:
+        form = ContactForm()
+    return render(request, "contact.html", {"form": form})
+
 
 # ===== HOME & DASHBOARD VIEWS =====
 
@@ -50,7 +88,7 @@ class DashboardRedirectView(LoginRequiredMixin, View):
 
         if user.is_superuser:
             return redirect("admin_dashboard")
-        elif user.groups.filter(name="Organizer").exists():
+        elif user.groups.filter(name=UserGroups.ORGANIZER).exists():
             return redirect("organizer_dashboard")
         else:
             return redirect("participant_dashboard")
@@ -63,24 +101,22 @@ class AdminDashboardView(SuperuserRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        current_date = timezone.localdate()
+
+        all_events = Event.objects.all()
+        total_revenue = sum(
+            event.ticket_price * event.tickets_sold for event in all_events
+        )
+        total_tickets_sold = sum(event.tickets_sold for event in all_events)
 
         context.update(
             {
-                "total_events": Event.objects.count(),
+                "total_events": all_events.count(),
                 "total_users": User.objects.count(),
-                "total_participants": User.objects.filter(events_joined__isnull=False)
-                .distinct()
-                .count(),
-                "past_events": Event.objects.filter(date__lt=current_date).count(),
-                "upcoming_events": Event.objects.filter(
-                    date__gte=current_date, status="published"
-                ).count(),
-                "today_events": Event.objects.filter(
-                    date=current_date, status="published"
-                ),
-                "recent_events": Event.objects.order_by("-created")[:5],
-                "current_date": current_date,
+                "total_revenue": total_revenue,
+                "total_tickets_sold": total_tickets_sold,
+                "all_payments": Payment.objects.all()
+                .select_related("user", "event")
+                .order_by("-created"),
             }
         )
         return context
@@ -90,29 +126,29 @@ class OrganizerDashboardView(GroupRequiredMixin, TemplateView):
     """Enhanced organizer dashboard with live updates"""
 
     template_name = "dashboards/organizer_dashboard.html"
-    group_required = ["Organizer"]
+    group_required = [UserGroups.ORGANIZER]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        current_date = timezone.localdate()
-        user_events = Event.objects.filter(organizer=self.request.user)
+        user = self.request.user
+        user_events = Event.objects.filter(organizer=user)
+
+        total_revenue = sum(
+            event.ticket_price * event.tickets_sold for event in user_events
+        )
+        total_tickets_sold = sum(event.tickets_sold for event in user_events)
 
         context.update(
             {
                 "total_events": user_events.count(),
-                "total_participants": User.objects.filter(
-                    events_joined__organizer=self.request.user
-                )
-                .distinct()
-                .count(),
-                "past_events": user_events.filter(date__lt=current_date).count(),
+                "total_revenue": total_revenue,
+                "total_tickets_sold": total_tickets_sold,
                 "upcoming_events": user_events.filter(
-                    date__gte=current_date, status="published"
-                ).count(),
-                "today_events": user_events.filter(
-                    date=current_date, status="published"
+                    date__gte=timezone.localdate(), status="published"
                 ),
-                "current_date": current_date,
+                "user_events_with_stats": user_events.annotate(
+                    revenue=models.F("ticket_price") * models.F("tickets_sold")
+                ).order_by("-created"),
             }
         )
         return context
@@ -172,7 +208,7 @@ class EventListView(FilterView):
         if request.htmx:
             # Return filtered events for HTMX requests
             self.object_list = self.get_queryset()
-            self.get_context_data()
+            self.filterset = self.get_filterset(self.get_filterset_class())
 
             html = render_to_string(
                 "events/_event_grid.html",
@@ -196,13 +232,19 @@ class EventDetailView(DetailView):
         )
 
 
+class CheckoutView(LoginRequiredMixin, EventDetailView):
+    """Displays the checkout page for an event, reusing EventDetailView's logic."""
+
+    template_name = "events/checkout.html"
+
+
 class EventCreateView(GroupRequiredMixin, CreateView):
     """Enhanced event creation with crispy forms"""
 
     model = Event
     form_class = EventForm
     template_name = "events/event_form.html"
-    group_required = ["Organizer"]
+    group_required = [UserGroups.ORGANIZER]
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -223,7 +265,7 @@ class EventUpdateView(GroupRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Event
     form_class = EventForm
     template_name = "events/event_form.html"
-    group_required = ["Organizer"]
+    group_required = [UserGroups.ORGANIZER]
 
     def test_func(self):
         event = self.get_object()
@@ -248,7 +290,7 @@ class EventDeleteView(GroupRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Event
     template_name = "events/event_confirm_delete.html"
     success_url = reverse_lazy("event_list")
-    group_required = ["Organizer"]
+    group_required = [UserGroups.ORGANIZER]
 
     def test_func(self):
         event = self.get_object()
@@ -326,7 +368,7 @@ class CategoryCreateView(GroupRequiredMixin, CreateView):
     form_class = CategoryForm
     template_name = "events/category_form.html"
     success_url = reverse_lazy("category_list")
-    group_required = ["Organizer"]
+    group_required = [UserGroups.ORGANIZER]
 
     def form_valid(self, form):
         messages.success(self.request, "Category created successfully!")
@@ -340,7 +382,7 @@ class CategoryUpdateView(GroupRequiredMixin, UpdateView):
     form_class = CategoryForm
     template_name = "events/category_form.html"
     success_url = reverse_lazy("category_list")
-    group_required = ["Organizer"]
+    group_required = [UserGroups.ORGANIZER]
 
     def form_valid(self, form):
         messages.success(self.request, "Category updated successfully!")
@@ -353,7 +395,7 @@ class CategoryDeleteView(GroupRequiredMixin, DeleteView):
     model = Category
     template_name = "events/category_confirm_delete.html"
     success_url = reverse_lazy("category_list")
-    group_required = ["Organizer"]
+    group_required = [UserGroups.ORGANIZER]
 
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Category deleted successfully!")
@@ -399,7 +441,7 @@ class ParticipantListView(GroupRequiredMixin, ListView):
     model = User
     template_name = "events/participant_list.html"
     context_object_name = "participants"
-    group_required = ["Organizer"]
+    group_required = [UserGroups.ORGANIZER]
 
     def get_queryset(self):
         return (
@@ -430,7 +472,7 @@ class DashboardStatsView(LoginRequiredMixin, View):
                     date__gte=current_date, status="published"
                 ).count(),
             }
-        elif request.user.groups.filter(name="Organizer").exists():
+        elif request.user.groups.filter(name=UserGroups.ORGANIZER).exists():
             user_events = Event.objects.filter(organizer=request.user)
             stats = {
                 "total_events": user_events.count(),
@@ -455,6 +497,100 @@ class DashboardStatsView(LoginRequiredMixin, View):
             }
 
         return JsonResponse(stats)
+
+
+# ===== PAYMENT VIEWS =====
+
+
+@login_required
+@require_http_methods(["POST"])
+def initiate_payment(request, pk):
+    """Secure payment initiation with CSRF protection."""
+    event = get_object_or_404(Event, pk=pk, status="published")
+
+    # Check if user already has a valid ticket
+    if request.user in event.participants.all():
+        messages.info(request, "You already have a ticket for this event!")
+        return redirect("event_detail", pk=pk)
+
+    # Create payment session
+    result = payment_handler.create_payment_session(request, event, request.user)
+
+    if result["success"]:
+        return redirect(result["gateway_url"])
+    else:
+        messages.error(
+            request,
+            f"Payment initiation failed: {result.get('error', 'Unknown error')}",
+        )
+        return redirect("event_detail", pk=pk)
+
+
+@require_http_methods(["GET", "POST"])
+def payment_success(request):
+    """Secure payment success handler."""
+    if request.method == "GET":
+        # Handle GET requests (user redirected from payment gateway)
+        tran_id = request.GET.get("tran_id")
+        if not tran_id:
+            messages.error(request, "Invalid payment response.")
+            return redirect("event_list")
+    else:
+        # Handle POST requests (callback from payment gateway)
+        tran_id = request.POST.get("tran_id")
+
+    if not tran_id:
+        messages.error(request, "Missing transaction information.")
+        return redirect("event_list")
+
+    # Validate payment
+    result = payment_handler.validate_payment(request.POST or request.GET)
+
+    if result["success"]:
+        event = result["event"]
+        messages.success(request, f"Payment successful for {event.name}!")
+        return render(request, "payment_success.html", {"event": event})
+    else:
+        messages.error(
+            request,
+            f"Payment validation failed: {result.get('error', 'Unknown error')}",
+        )
+        return redirect("event_list")
+
+
+@require_http_methods(["GET", "POST"])
+def payment_fail(request):
+    """Secure payment failure handler."""
+    # Handle both GET and POST requests
+    payment_data = request.POST if request.method == "POST" else request.GET
+
+    # Handle failed payment
+    payment_handler.handle_failed_payment(payment_data)
+
+    messages.error(request, "Payment failed or was cancelled.")
+    return render(request, "payment_fail.html")
+
+
+@require_http_methods(["POST"])
+def payment_ipn(request):
+    """Secure IPN handler for SSLCommerz notifications."""
+    # For production, implement IP whitelisting and signature verification
+
+    # Log IPN request for monitoring
+    import logging
+
+    logger = logging.getLogger(__name__)
+    logger.info(f"IPN received from IP: {request.META.get('REMOTE_ADDR')}")
+
+    # Validate payment
+    result = payment_handler.validate_payment(request.POST)
+
+    if result["success"]:
+        logger.info(f"IPN processed successfully: {request.POST.get('tran_id')}")
+        return HttpResponse("IPN Processed")
+    else:
+        logger.warning(f"IPN validation failed: {result.get('error')}")
+        return HttpResponse("IPN Received")
 
 
 # Import existing password change views
@@ -523,7 +659,7 @@ class CachedDashboardStatsView(DashboardStatsView):
                 ).count(),
                 "cache_status": "fresh",
             }
-        elif request.user.groups.filter(name="Organizer").exists():
+        elif request.user.groups.filter(name=UserGroups.ORGANIZER).exists():
             user_events = Event.objects.filter(organizer=request.user)
             stats = {
                 "total_events": user_events.count(),
@@ -577,3 +713,95 @@ class CachedEventDetailView(EventDetailView):
         context["view_count"] = redis_client.get_event_views(event_id)
 
         return context
+
+
+def get_live_stats_htmx(request):
+    total_events = Event.objects.filter(status="published").count()
+    total_categories = Category.objects.count()
+    all_events = Event.objects.all()
+    total_tickets_sold = sum(event.tickets_sold for event in all_events)
+
+    context = {
+        "total_events": total_events,
+        "total_categories": total_categories,
+        "total_tickets_sold": total_tickets_sold,
+    }
+    return render(request, "events/_live_stats.html", context)
+
+
+@login_required
+def get_participant_payments_htmx(request):
+    user_payments = (
+        Payment.objects.filter(user=request.user)
+        .select_related("event")
+        .order_by("-created")
+    )
+    context = {
+        "user": request.user,
+        "user_payments": user_payments,
+    }
+    return render(request, "events/_participant_payments.html", context)
+
+
+@login_required
+def get_organizer_stats_htmx(request):
+    user = request.user
+    user_events = Event.objects.filter(organizer=user)
+
+    total_revenue = sum(
+        event.ticket_price * event.tickets_sold for event in user_events
+    )
+    total_tickets_sold = sum(event.tickets_sold for event in user_events)
+    upcoming_events_count = user_events.filter(
+        date__gte=timezone.localdate(), status="published"
+    ).count()
+
+    context = {
+        "total_revenue": total_revenue,
+        "total_tickets_sold": total_tickets_sold,
+        "upcoming_events_count": upcoming_events_count,
+    }
+    return render(request, "events/_organizer_stats.html", context)
+
+
+@login_required
+def get_organizer_events_htmx(request):
+    user = request.user
+    user_events_with_stats = (
+        Event.objects.filter(organizer=user)
+        .annotate(revenue=models.F("ticket_price") * models.F("tickets_sold"))
+        .order_by("-created")
+    )
+
+    context = {
+        "user_events_with_stats": user_events_with_stats,
+    }
+    return render(request, "events/_organizer_events.html", context)
+
+
+@login_required
+def get_admin_stats_htmx(request):
+    all_events = Event.objects.all()
+    total_revenue = sum(event.ticket_price * event.tickets_sold for event in all_events)
+    total_tickets_sold = sum(event.tickets_sold for event in all_events)
+    total_events = all_events.count()
+    total_users = User.objects.count()
+
+    context = {
+        "total_revenue": total_revenue,
+        "total_tickets_sold": total_tickets_sold,
+        "total_events": total_events,
+        "total_users": total_users,
+    }
+    return render(request, "events/_admin_stats.html", context)
+
+
+@login_required
+def get_admin_payments_htmx(request):
+    all_payments = (
+        Payment.objects.all().select_related("user", "event").order_by("-created")
+    )
+    context = {
+        "all_payments": all_payments,
+    }
+    return render(request, "events/_admin_payments.html", context)

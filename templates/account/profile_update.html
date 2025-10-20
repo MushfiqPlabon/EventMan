@@ -4,13 +4,13 @@
 {% block title %}Edit Profile{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-8 sm:p-10 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
-    <h1 class="text-4xl font-extrabold text-center text-blue-700 dark:text-blue-400 mb-8">Edit Your Profile</h1>
+<div class="max-w-3xl mx-auto bg-card/80 backdrop-blur-sm border border-border/20 rounded-lg p-8 shadow-lg">
+    <h1 class="text-4xl font-extrabold text-center text-primary-700 dark:text-primary-400 mb-8">Edit Your Profile</h1>
 
     {% if messages %}
         <div class="mb-6 space-y-3">
             {% for message in messages %}
-                <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100{% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100{% else %}bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100{% endif %} text-sm font-medium">
+                <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% else %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200{% endif %} text-sm font-medium">
                     {{ message }}
                 </div>
             {% endfor %}
@@ -21,62 +21,62 @@
         {% csrf_token %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-5">User Information</h2>
+                <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-5">User Information</h2>
                 <div class="space-y-4">
                     <div>
-                        <label for="id_first_name" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">First Name:</label>
-                        {{ user_form.first_name|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" }}
+                        <label for="id_first_name" class="block text-sm font-medium text-muted-foreground">First Name:</label>
+                        {{ user_form.first_name|add_class:"mt-1 block w-full rounded-md border-input bg-transparent p-3 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" }}
                         {% if user_form.first_name.errors %}
-                            <p class="text-red-500 text-xs italic mt-1">{{ user_form.first_name.errors }}</p>
+                            <p class="text-destructive text-sm mt-1">{{ user_form.first_name.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        <label for="id_last_name" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Last Name:</label>
-                        {{ user_form.last_name|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" }}
+                        <label for="id_last_name" class="block text-sm font-medium text-muted-foreground">Last Name:</label>
+                        {{ user_form.last_name|add_class:"mt-1 block w-full rounded-md border-input bg-transparent p-3 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" }}
                         {% if user_form.last_name.errors %}
-                            <p class="text-red-500 text-xs italic mt-1">{{ user_form.last_name.errors }}</p>
+                            <p class="text-destructive text-sm mt-1">{{ user_form.last_name.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        <label for="id_email" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Email:</label>
-                        {{ user_form.email|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" }}
+                        <label for="id_email" class="form-label">Email:</label>
+                        {{ user_form.email|add_class:"mt-1 block w-full rounded-md border-input bg-transparent p-3 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" }}
                         {% if user_form.email.errors %}
-                            <p class="text-red-500 text-xs italic mt-1">{{ user_form.email.errors }}</p>
+                            <p class="text-destructive text-sm mt-1">{{ user_form.email.errors }}</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-5">Profile Information</h2>
+                <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-5">Profile Information</h2>
                 <div class="space-y-4">
                     <div>
-                        <label for="id_profile_picture" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Profile Picture:</label>
+                        <label for="id_profile_picture" class="form-label">Profile Picture:</label>
                         {% if user.profile.profile_picture %}
-                            <img src="{{ user.profile.profile_picture.url }}" class="w-28 h-28 rounded-full object-cover mb-3 border-2 border-blue-400 shadow-md" alt="Current Profile Picture">
+                            <img src="{{ user.profile.profile_picture.url }}" class="w-28 h-28 rounded-full object-cover mb-3 border-2 border-primary-400 shadow-md" alt="Current Profile Picture">
                         {% endif %}
-                        {{ profile_form.profile_picture|add_class:"mt-1 block w-full text-sm text-gray-900 dark:text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-700 dark:file:text-gray-200 dark:hover:file:bg-gray-600" }}
+                        {{ profile_form.profile_picture|add_class:"mt-1 block w-full text-sm text-neutral-900 dark:text-neutral-100 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-neutral-700 dark:file:text-neutral-200 dark:hover:file:bg-neutral-600" }}
                         {% if profile_form.profile_picture.errors %}
-                            <p class="text-red-500 text-xs italic mt-1">{{ profile_form.profile_picture.errors }}</p>
+                            <p class="text-destructive text-sm mt-1">{{ profile_form.profile_picture.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        <label for="id_phone_number" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Phone Number:</label>
-                        {{ profile_form.phone_number|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" }}
+                        <label for="id_phone_number" class="form-label">Phone Number:</label>
+                        {{ profile_form.phone_number|add_class:"mt-1 block w-full rounded-md border-input bg-transparent p-3 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" }}
                         {% if profile_form.phone_number.errors %}
-                            <p class="text-red-500 text-xs italic mt-1">{{ profile_form.phone_number.errors }}</p>
+                            <p class="text-destructive text-sm mt-1">{{ profile_form.phone_number.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        <label for="id_bio" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Bio:</label>
-                        {{ profile_form.bio|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" }}
+                        <label for="id_bio" class="form-label">Bio:</label>
+                        {{ profile_form.bio|add_class:"mt-1 block w-full rounded-md border-input bg-transparent p-3 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" }}
                         {% if profile_form.bio.errors %}
-                            <p class="text-red-500 text-xs italic mt-1">{{ profile_form.bio.errors }}</p>
+                            <p class="text-destructive text-sm mt-1">{{ profile_form.bio.errors }}</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-105 shadow-md">
+        <button type="submit" class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/90">
             ✅ Update Profile
         </button>
     </form>

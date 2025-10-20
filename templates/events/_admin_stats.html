@@ -1,0 +1,18 @@
+<div id="admin-stats-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <div class="bg-card/60 backdrop-blur-xl border rounded-xl p-6 shadow-lg hover:animate-pulse">
+        <h3 class="text-sm font-medium text-muted-foreground">Total Revenue</h3>
+        <p class="text-3xl font-bold mt-2">${{ total_revenue|floatformat:2 }}</p>
+    </div>
+    <div class="bg-card/60 backdrop-blur-xl border rounded-xl p-6 shadow-lg hover:animate-pulse">
+        <h3 class="text-sm font-medium text-muted-foreground">Total Tickets Sold</h3>
+        <p class="text-3xl font-bold mt-2">{{ total_tickets_sold }}</p>
+    </div>
+    <div class="bg-card/60 backdrop-blur-xl border rounded-xl p-6 shadow-lg hover:animate-pulse">
+        <h3 class="text-sm font-medium text-muted-foreground">Total Events</h3>
+        <p class="text-3xl font-bold mt-2">{{ total_events }}</p>
+    </div>
+    <div class="bg-card/60 backdrop-blur-xl border rounded-xl p-6 shadow-lg hover:animate-pulse">
+        <h3 class="text-sm font-medium text-muted-foreground">Total Users</h3>
+        <p class="text-3xl font-bold mt-2">{{ total_users }}</p>
+    </div>
+</div>

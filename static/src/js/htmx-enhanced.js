@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const triggers = JSON.parse(triggerHeader);
             
             if (triggers.showMessage) {
-                showNotification(triggers.showMessage, 'success');
+                window.reactiveCore.showNotification(triggers.showMessage, 'success');
             }
             
             if (triggers.updateCount) {
@@ -42,36 +42,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-
-    // Notification system using Tailwind classes
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        const bgColor = type === 'success' ? 'bg-green-500' : 
-                       type === 'error' ? 'bg-red-500' : 
-                       type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
-        
-        notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300`;
-        notification.innerHTML = `
-            <div class="flex items-center justify-between">
-                <span>${message}</span>
-                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200 text-xl">&times;</button>
-            </div>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Animate in
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 10);
-        
-        // Auto remove
-        setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => notification.remove(), 300);
-        }, 5000);
-    }
-
-    // Make showNotification available globally
-    window.showNotification = showNotification;
 });
