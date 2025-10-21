@@ -18,6 +18,7 @@ DEBUG = config("DEBUG", default=True, cast=bool)
 # Debug state logging removed for production
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,localhost").split(",")
+print("Initial ALLOWED_HOSTS:", ALLOWED_HOSTS)
 
 # Application definition
 INSTALLED_APPS = [
@@ -254,6 +255,7 @@ if IS_PRODUCTION:
                 "*.vercel.app",
             ]
         )
+        print("Extended ALLOWED_HOSTS for Vercel:", ALLOWED_HOSTS)
         CSRF_TRUSTED_ORIGINS.extend(
             [
                 "https://*.vercel.app",
