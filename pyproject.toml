@@ -1,6 +1,7 @@
 [project]
 name = "eventman"
 version = "0.0.1"
+requires-python = ">=3.12"
 dependencies = [
     "django>=5.1,<6.0",
     "python-decouple>=3.8",
