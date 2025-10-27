@@ -12,7 +12,8 @@ This document, therefore, is not just a guide to the codebase but a commentary o
 
 ## Live Demo
 
-Experience EventMan in action: [https://eventman-phi-assign.onrender.com/](https://eventman-phi-assign.onrender.com/)
+Experience EventMan in action: [Vercel](https://event-man-drab.vercel.app/)
+Backup Deployment: [Render](https://eventman-phi-assign.onrender.com/)
 
 > **Note:** The initial load may be slow as the application is hosted on a free tier, which spins down instances during periods of inactivity.
 
