@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-mobile: 480px;
+  --dark-mode: "class";
+}
