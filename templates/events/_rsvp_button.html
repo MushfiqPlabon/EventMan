@@ -1,0 +1,5 @@
+<button hx-post="{% url 'rsvp_toggle' pk=event.pk %}"
+        hx-swap="outerHTML"
+        class="{{ btn_class }} text-sm py-2 px-4">
+    {{ btn_text }}
+</button>

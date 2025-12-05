@@ -1,5 +1,6 @@
 import logging
 
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models.signals import m2m_changed
@@ -14,8 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 @receiver(m2m_changed, sender=Event.participants.through)
-def send_rsvp_email_notification(
-    sender, instance, action, reverse, model, pk_set, **kwargs
+async def send_rsvp_email_notification(
+    sender,
+    instance,
+    action,
+    reverse,
+    model,
+    pk_set,
+    **kwargs,
 ):
     """
     Sends an email notification when a user RSVPs to an event.
@@ -23,18 +30,18 @@ def send_rsvp_email_notification(
     """
     if action == "post_add":  # User has been added to participants
         for user_pk in pk_set:
-            user = model.objects.get(pk=user_pk)
+            user = await sync_to_async(model.objects.get)(pk=user_pk)
             event = instance  # The event instance
             subject = f"RSVP Confirmation for: {event.name}"
-            html_message = render_to_string(
+            html_message = await sync_to_async(render_to_string)(
                 "emails/rsvp_confirmation.html", {"user": user, "event": event}
             )
-            plain_message = strip_tags(html_message)
+            plain_message = await sync_to_async(strip_tags)(html_message)
             from_email = getattr(settings, "DEFAULT_FROM_EMAIL", DEFAULT_NOREPLY_EMAIL)
             to_email = [user.email]
 
             try:
-                send_mail(
+                await sync_to_async(send_mail, thread_sensitive=True)(
                     subject,
                     plain_message,
                     from_email,

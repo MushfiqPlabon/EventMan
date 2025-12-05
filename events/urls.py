@@ -2,11 +2,11 @@ from django.urls import path
 
 from . import views
 from .views import (AdminDashboardView, CachedDashboardStatsView,
-                    CachedEventDetailView, CategoryCreateView,
-                    CategoryDeleteView, CategoryListView, CategoryUpdateView,
-                    CheckoutView, CustomPasswordChangeDoneView,
-                    CustomPasswordChangeView, DashboardRedirectView,
-                    EventCreateView, EventDeleteView, EventListView,
+                    CategoryCreateView, CategoryDeleteView, CategoryListView,
+                    CategoryUpdateView, CheckoutView,
+                    CustomPasswordChangeDoneView, CustomPasswordChangeView,
+                    DashboardRedirectView, EventCreateView, EventDeleteView,
+                    EventDetailViewWithTracking, EventListView,
                     EventUpdateView, HealthCheckView, HomeView,
                     OrganizerDashboardView, ParticipantDashboardView,
                     ParticipantListView, ProfileDetailView, ProfileUpdateView,
@@ -37,7 +37,9 @@ urlpatterns = [
     path("participants/", ParticipantListView.as_view(), name="participant_list"),
     # Event URLs with HTMX support
     path("events/", EventListView.as_view(), name="event_list"),
-    path("events/<int:pk>/", CachedEventDetailView.as_view(), name="event_detail"),
+    path(
+        "events/<int:pk>/", EventDetailViewWithTracking.as_view(), name="event_detail"
+    ),
     path("events/new/", EventCreateView.as_view(), name="event_create"),
     path("events/<int:pk>/edit/", EventUpdateView.as_view(), name="event_update"),
     path("events/<int:pk>/delete/", EventDeleteView.as_view(), name="event_delete"),

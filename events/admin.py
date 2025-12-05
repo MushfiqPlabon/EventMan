@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import RSVP, Category, Event, Payment, Profile
+from .models import Category, Event, Payment, Profile
 
 
 @admin.register(Category)
@@ -55,15 +55,6 @@ class ProfileAdmin(admin.ModelAdmin):
     list_filter = ("created", "modified")
     search_fields = ("user__username", "user__email", "phone_number")
     readonly_fields = ("created", "modified")
-
-
-@admin.register(RSVP)
-class RSVPAdmin(admin.ModelAdmin):
-    list_display = ("user", "event", "status", "created")
-    list_filter = ("status", "created")
-    search_fields = ("user__username", "event__name")
-    readonly_fields = ("created", "modified")
-    date_hierarchy = "created"
 
 
 # Customize admin site

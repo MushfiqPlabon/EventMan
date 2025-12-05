@@ -1,4 +1,5 @@
 import pytest
+from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -27,13 +28,15 @@ def event(user, category):
 
 @pytest.fixture
 def sslcommerz_mock(mocker):
-    mock_sslcz = mocker.patch("events.views.SSLCOMMERZ").return_value
-    mock_sslcz.createSession.return_value = {
+    mock_sslcz_instance = mocker.MagicMock()
+    mock_sslcz_instance.createSession.return_value = {
         "status": "SUCCESS",
         "GatewayPageURL": "https://sandbox.sslcommerz.com/gwprocess/v4/url.php?am=123",
     }
-    mock_sslcz.validationResponse.return_value = True
-    return mock_sslcz
+    mock_sslcz_instance.validationResponse.return_value = True
+
+    mocker.patch("events.payment_utils.SSLCOMMERZ", return_value=mock_sslcz_instance)
+    return mock_sslcz_instance
 
 
 @pytest.fixture
@@ -48,7 +51,8 @@ def config_mock(mocker):
 
 
 @pytest.mark.django_db
-def test_initiate_payment_authenticated_success(
+@pytest.mark.anyio
+async def test_initiate_payment_authenticated_success(
     client, user, event, sslcommerz_mock, config_mock
 ):
     client.force_login(user)
@@ -56,7 +60,7 @@ def test_initiate_payment_authenticated_success(
         "status": "SUCCESS",
         "GatewayPageURL": "https://sandbox.sslcommerz.com/gwprocess/v4/url.php?am=123",
     }
-    response = client.post(reverse("initiate_payment", kwargs={"pk": event.pk}))
+    response = await client.post(reverse("initiate_payment", kwargs={"pk": event.pk}))
 
     assert Payment.objects.count() == 1
     payment = Payment.objects.first()
@@ -71,15 +75,17 @@ def test_initiate_payment_authenticated_success(
 
 
 @pytest.mark.django_db
-def test_initiate_payment_unauthenticated(client, event):
-    response = client.post(reverse("initiate_payment", kwargs={"pk": event.pk}))
+@pytest.mark.anyio
+async def test_initiate_payment_unauthenticated(client, event):
+    response = await client.post(reverse("initiate_payment", kwargs={"pk": event.pk}))
     assert response.status_code == 302
     assert "/accounts/login/" in response.url
 
 
 @pytest.mark.django_db
-def test_payment_success_valid(client, user, event, sslcommerz_mock, config_mock):
-    payment = Payment.objects.create(
+@pytest.mark.anyio
+async def test_payment_success_valid(client, user, event, sslcommerz_mock, config_mock):
+    payment = await sync_to_async(Payment.objects.create, thread_sensitive=True)(
         user=user,
         event=event,
         amount=event.ticket_price,
@@ -88,7 +94,7 @@ def test_payment_success_valid(client, user, event, sslcommerz_mock, config_mock
     )
     initial_tickets_sold = event.tickets_sold
 
-    response = client.post(
+    response = await client.post(
         reverse("payment_success"), {"tran_id": payment.transaction_id}
     )
 
@@ -103,10 +109,11 @@ def test_payment_success_valid(client, user, event, sslcommerz_mock, config_mock
 
 
 @pytest.mark.django_db
-def test_payment_success_invalid_validation(
+@pytest.mark.anyio
+async def test_payment_success_invalid_validation(
     client, user, event, sslcommerz_mock, config_mock
 ):
-    payment = Payment.objects.create(
+    payment = await sync_to_async(Payment.objects.create, thread_sensitive=True)(
         user=user,
         event=event,
         amount=event.ticket_price,
@@ -115,7 +122,7 @@ def test_payment_success_invalid_validation(
     )
     sslcommerz_mock.validationResponse.return_value = False
 
-    response = client.post(
+    response = await client.post(
         reverse("payment_success"), {"tran_id": payment.transaction_id}
     )
 
@@ -130,8 +137,9 @@ def test_payment_success_invalid_validation(
 
 
 @pytest.mark.django_db
-def test_payment_fail(client, user, event, config_mock):
-    payment = Payment.objects.create(
+@pytest.mark.anyio
+async def test_payment_fail(client, user, event, config_mock):
+    payment = await sync_to_async(Payment.objects.create)(
         user=user,
         event=event,
         amount=event.ticket_price,
@@ -139,17 +147,20 @@ def test_payment_fail(client, user, event, config_mock):
         transaction_id="test_tran_id",
     )
 
-    response = client.post(reverse("payment_fail"), {"tran_id": payment.transaction_id})
+    response = await client.post(
+        reverse("payment_fail"), {"tran_id": payment.transaction_id}
+    )
 
     payment.refresh_from_db()
-    assert payment.status == "Failed"
+    assert payment.status == "failed"
     assert response.status_code == 200
     assert "payment_fail.html" in [t.name for t in response.templates]
 
 
 @pytest.mark.django_db
-def test_payment_ipn_valid(client, user, event, sslcommerz_mock, config_mock):
-    payment = Payment.objects.create(
+@pytest.mark.anyio
+async def test_payment_ipn_valid(client, user, event, sslcommerz_mock, config_mock):
+    payment = await sync_to_async(Payment.objects.create)(
         user=user,
         event=event,
         amount=event.ticket_price,
@@ -158,7 +169,9 @@ def test_payment_ipn_valid(client, user, event, sslcommerz_mock, config_mock):
     )
     initial_tickets_sold = event.tickets_sold
 
-    response = client.post(reverse("payment_ipn"), {"tran_id": payment.transaction_id})
+    response = await client.post(
+        reverse("payment_ipn"), {"tran_id": payment.transaction_id}
+    )
 
     payment.refresh_from_db()
     event.refresh_from_db()
@@ -171,8 +184,9 @@ def test_payment_ipn_valid(client, user, event, sslcommerz_mock, config_mock):
 
 
 @pytest.mark.django_db
-def test_payment_ipn_invalid(client, user, event, sslcommerz_mock, config_mock):
-    payment = Payment.objects.create(
+@pytest.mark.anyio
+async def test_payment_ipn_invalid(client, user, event, sslcommerz_mock, config_mock):
+    payment = await sync_to_async(Payment.objects.create)(
         user=user,
         event=event,
         amount=event.ticket_price,
@@ -181,7 +195,9 @@ def test_payment_ipn_invalid(client, user, event, sslcommerz_mock, config_mock):
     )
     sslcommerz_mock.validationResponse.return_value = False
 
-    response = client.post(reverse("payment_ipn"), {"tran_id": payment.transaction_id})
+    response = await client.post(
+        reverse("payment_ipn"), {"tran_id": payment.transaction_id}
+    )
 
     payment.refresh_from_db()
     event.refresh_from_db()

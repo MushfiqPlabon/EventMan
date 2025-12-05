@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -18,7 +17,6 @@ DEBUG = config("DEBUG", default=True, cast=bool)
 # Debug state logging removed for production
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,localhost").split(",")
-print("Initial ALLOWED_HOSTS:", ALLOWED_HOSTS)
 
 # Application definition
 INSTALLED_APPS = [
@@ -255,7 +253,6 @@ if IS_PRODUCTION:
                 "*.vercel.app",
             ]
         )
-        print("Extended ALLOWED_HOSTS for Vercel:", ALLOWED_HOSTS)
         CSRF_TRUSTED_ORIGINS.extend(
             [
                 "https://*.vercel.app",
@@ -332,19 +329,3 @@ else:
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         }
     }
-
-# JWT Settings (from .env)
-JWT_ACCESS_TOKEN_LIFETIME_MINUTES = config(
-    "JWT_ACCESS_TOKEN_LIFETIME_MINUTES", default=60, cast=int
-)
-JWT_REFRESH_TOKEN_LIFETIME_DAYS = config(
-    "JWT_REFRESH_TOKEN_LIFETIME_DAYS", default=1, cast=int
-)
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=JWT_ACCESS_TOKEN_LIFETIME_MINUTES),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=JWT_REFRESH_TOKEN_LIFETIME_DAYS),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": True,
-}

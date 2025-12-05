@@ -27,10 +27,3 @@ PAYMENT_STATUS_CHOICES = [
     ("valid", "Valid"),
     ("failed", "Failed"),
 ]
-
-# RSVP Status Choices
-RSVP_STATUS_CHOICES = [
-    ("attending", "Attending"),
-    ("not_attending", "Not Attending"),
-    ("maybe", "Maybe"),
-]

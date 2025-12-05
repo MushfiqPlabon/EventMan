@@ -1,5 +1,6 @@
 import json
 
+from asgiref.sync import sync_to_async
 from braces.views import GroupRequiredMixin, SuperuserRequiredMixin
 from decouple import config
 from django.conf import settings
@@ -11,7 +12,7 @@ from django.contrib.auth.views import (PasswordChangeDoneView,
                                        PasswordChangeView)
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -34,7 +35,7 @@ User = get_user_model()
 
 
 # Contact View
-def contact_view(request):
+async def contact_view(request):
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -46,7 +47,7 @@ def contact_view(request):
             full_message = f"Name: {name}\nEmail: {email}\n\n{message}"
 
             try:
-                send_mail(
+                await sync_to_async(send_mail, thread_sensitive=True)(
                     subject,  # Email subject
                     full_message,  # Email body
                     settings.DEFAULT_FROM_EMAIL,  # From email
@@ -94,63 +95,77 @@ class DashboardRedirectView(LoginRequiredMixin, View):
             return redirect("participant_dashboard")
 
 
-class AdminDashboardView(SuperuserRequiredMixin, TemplateView):
+class DashboardStatsMixin:
+    def get_event_stats(self, queryset):
+        stats = queryset.aggregate(
+            total_revenue=Sum(F("ticket_price") * F("tickets_sold")),
+            total_tickets_sold=Sum("tickets_sold"),
+        )
+        return {
+            "total_revenue": stats["total_revenue"] or 0,
+            "total_tickets_sold": stats["total_tickets_sold"] or 0,
+        }
+
+
+class AdminDashboardView(SuperuserRequiredMixin, DashboardStatsMixin, TemplateView):
     """Enhanced admin dashboard with live stats"""
 
     template_name = "dashboards/admin_dashboard.html"
 
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
 
-        all_events = Event.objects.all()
-        total_revenue = sum(
-            event.ticket_price * event.tickets_sold for event in all_events
-        )
-        total_tickets_sold = sum(event.tickets_sold for event in all_events)
+        stats = self.get_event_stats(Event.objects.all())
 
         context.update(
             {
-                "total_events": all_events.count(),
+                "total_events": Event.objects.count(),
                 "total_users": User.objects.count(),
-                "total_revenue": total_revenue,
-                "total_tickets_sold": total_tickets_sold,
+                "total_revenue": stats["total_revenue"],
+                "total_tickets_sold": stats["total_tickets_sold"],
                 "all_payments": Payment.objects.all()
                 .select_related("user", "event")
-                .order_by("-created"),
+                .order_by("-created")[:10],  # Display top 10 payments
             }
         )
+
         return context
 
 
-class OrganizerDashboardView(GroupRequiredMixin, TemplateView):
+class OrganizerDashboardView(GroupRequiredMixin, DashboardStatsMixin, TemplateView):
     """Enhanced organizer dashboard with live updates"""
 
     template_name = "dashboards/organizer_dashboard.html"
+
     group_required = [UserGroups.ORGANIZER]
 
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
+
         user = self.request.user
+
         user_events = Event.objects.filter(organizer=user)
 
-        total_revenue = sum(
-            event.ticket_price * event.tickets_sold for event in user_events
-        )
-        total_tickets_sold = sum(event.tickets_sold for event in user_events)
+        stats = self.get_event_stats(user_events)
 
         context.update(
             {
                 "total_events": user_events.count(),
-                "total_revenue": total_revenue,
-                "total_tickets_sold": total_tickets_sold,
+                "total_revenue": stats["total_revenue"],
+                "total_tickets_sold": stats["total_tickets_sold"],
                 "upcoming_events": user_events.filter(
                     date__gte=timezone.localdate(), status="published"
                 ),
                 "user_events_with_stats": user_events.annotate(
                     revenue=models.F("ticket_price") * models.F("tickets_sold")
-                ).order_by("-created"),
+                ).order_by("-created")[
+                    :10
+                ],  # Display top 10 events
             }
         )
+
         return context
 
 
@@ -160,22 +175,44 @@ class ParticipantDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "dashboards/participant_dashboard.html"
 
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
+
         user = self.request.user
+
         current_date = timezone.localdate()
+
+        # Fetch all joined events in a single query
+
+        all_joined_events = (
+            user.events_joined.filter(status="published").order_by("date").all()
+        )
+
+        upcoming_events = []
+
+        past_events = []
+
+        for event in all_joined_events:
+
+            if event.date >= current_date:
+
+                upcoming_events.append(event)
+
+            else:
+
+                past_events.append(event)
 
         context.update(
             {
-                "my_events": user.events_joined.filter(status="published"),
-                "upcoming_events": user.events_joined.filter(
-                    date__gte=current_date, status="published"
-                ).order_by("date"),
-                "past_events": user.events_joined.filter(date__lt=current_date),
+                "my_events": all_joined_events,
+                "upcoming_events": upcoming_events,
+                "past_events": past_events,
                 "recommended_events": Event.objects.filter(
                     status="published", date__gte=current_date
                 ).exclude(participants=user)[:6],
             }
         )
+
         return context
 
 
@@ -311,7 +348,7 @@ class RSVPToggleView(LoginRequiredMixin, View):
         event = get_object_or_404(Event, pk=pk, status="published")
         user = request.user
 
-        user_is_participant = user in event.participants.all()
+        user_is_participant = event.participants.filter(pk=user.pk).exists()
 
         if user_is_participant:
             event.participants.remove(user)
@@ -326,13 +363,14 @@ class RSVPToggleView(LoginRequiredMixin, View):
 
         if request.htmx:
             # Return updated button HTML
-            html = f"""
-            <button hx-post="{reverse('rsvp_toggle', kwargs={'pk': event.pk})}"
-                    hx-swap="outerHTML"
-                    class="{btn_class} text-sm py-2 px-4">
-                {btn_text}
-            </button>
-            """
+            html = render_to_string(
+                "events/_rsvp_button.html",
+                {
+                    "event": event,
+                    "btn_class": btn_class,
+                    "btn_text": btn_text,
+                },
+            )
             response = HttpResponse(html)
             response["HX-Trigger"] = json.dumps(
                 {"showMessage": message, "updateCount": event.participants.count()}
@@ -458,43 +496,51 @@ class ParticipantListView(GroupRequiredMixin, ListView):
 class DashboardStatsView(LoginRequiredMixin, View):
     """AJAX endpoint for live dashboard stats"""
 
-    def get(self, request):
+    async def get(self, request):
         current_date = timezone.now().date()
 
         if request.user.is_superuser:
-            stats = {
-                "total_events": Event.objects.count(),
-                "total_participants": User.objects.filter(events_joined__isnull=False)
+            stats = await sync_to_async(Event.objects.aggregate)(
+                total_events=Count("id"),
+                past_events=Count("id", filter=Q(date__lt=current_date)),
+                upcoming_events=Count(
+                    "id", filter=Q(date__gte=current_date, status="published")
+                ),
+            )
+            total_participants = await sync_to_async(
+                User.objects.filter(events_joined__isnull=False).distinct().count
+            )()
+            stats["total_participants"] = total_participants
+
+        elif await sync_to_async(
+            request.user.groups.filter(name=UserGroups.ORGANIZER).exists
+        )():
+            user_events = await sync_to_async(Event.objects.filter)(
+                organizer=request.user
+            )
+            stats = await sync_to_async(user_events.aggregate)(
+                total_events=Count("id"),
+                past_events=Count("id", filter=Q(date__lt=current_date)),
+                upcoming_events=Count(
+                    "id", filter=Q(date__gte=current_date, status="published")
+                ),
+            )
+            total_participants = await sync_to_async(
+                User.objects.filter(events_joined__organizer=request.user)
                 .distinct()
-                .count(),
-                "past_events": Event.objects.filter(date__lt=current_date).count(),
-                "upcoming_events": Event.objects.filter(
-                    date__gte=current_date, status="published"
-                ).count(),
-            }
-        elif request.user.groups.filter(name=UserGroups.ORGANIZER).exists():
-            user_events = Event.objects.filter(organizer=request.user)
-            stats = {
-                "total_events": user_events.count(),
-                "total_participants": User.objects.filter(
-                    events_joined__organizer=request.user
-                )
-                .distinct()
-                .count(),
-                "past_events": user_events.filter(date__lt=current_date).count(),
-                "upcoming_events": user_events.filter(
-                    date__gte=current_date, status="published"
-                ).count(),
-            }
+                .count
+            )()
+            stats["total_participants"] = total_participants
+
         else:
-            user_events = request.user.events_joined.all()
-            stats = {
-                "total_events": user_events.count(),
-                "upcoming_events": user_events.filter(
-                    date__gte=current_date, status="published"
-                ).count(),
-                "past_events": user_events.filter(date__lt=current_date).count(),
-            }
+            user_events = await sync_to_async(request.user.events_joined.all)()
+            stats = await sync_to_async(user_events.aggregate)(
+                total_events=Count("id"),
+                past_events=Count("id", filter=Q(date__lt=current_date)),
+                upcoming_events=Count(
+                    "id", filter=Q(date__gte=current_date, status="published")
+                ),
+            )
 
         return JsonResponse(stats)
 
@@ -504,17 +550,20 @@ class DashboardStatsView(LoginRequiredMixin, View):
 
 @login_required
 @require_http_methods(["POST"])
-def initiate_payment(request, pk):
+async def initiate_payment(request, pk):
     """Secure payment initiation with CSRF protection."""
-    event = get_object_or_404(Event, pk=pk, status="published")
+    event = await sync_to_async(get_object_or_404)(Event, pk=pk, status="published")
 
     # Check if user already has a valid ticket
-    if request.user in event.participants.all():
+    is_participant = await sync_to_async(
+        event.participants.filter(pk=request.user.pk).exists
+    )()
+    if is_participant:
         messages.info(request, "You already have a ticket for this event!")
         return redirect("event_detail", pk=pk)
 
     # Create payment session
-    result = payment_handler.create_payment_session(request, event, request.user)
+    result = await payment_handler.create_payment_session(request, event, request.user)
 
     if result["success"]:
         return redirect(result["gateway_url"])
@@ -527,7 +576,7 @@ def initiate_payment(request, pk):
 
 
 @require_http_methods(["GET", "POST"])
-def payment_success(request):
+async def payment_success(request):
     """Secure payment success handler."""
     if request.method == "GET":
         # Handle GET requests (user redirected from payment gateway)
@@ -544,7 +593,7 @@ def payment_success(request):
         return redirect("event_list")
 
     # Validate payment
-    result = payment_handler.validate_payment(request.POST or request.GET)
+    result = await payment_handler.validate_payment(request.POST or request.GET)
 
     if result["success"]:
         event = result["event"]
@@ -559,20 +608,20 @@ def payment_success(request):
 
 
 @require_http_methods(["GET", "POST"])
-def payment_fail(request):
+async def payment_fail(request):
     """Secure payment failure handler."""
     # Handle both GET and POST requests
     payment_data = request.POST if request.method == "POST" else request.GET
 
     # Handle failed payment
-    payment_handler.handle_failed_payment(payment_data)
+    await payment_handler.handle_failed_payment(payment_data)
 
     messages.error(request, "Payment failed or was cancelled.")
     return render(request, "payment_fail.html")
 
 
 @require_http_methods(["POST"])
-def payment_ipn(request):
+async def payment_ipn(request):
     """Secure IPN handler for SSLCommerz notifications."""
     # For production, implement IP whitelisting and signature verification
 
@@ -583,7 +632,7 @@ def payment_ipn(request):
     logger.info(f"IPN received from IP: {request.META.get('REMOTE_ADDR')}")
 
     # Validate payment
-    result = payment_handler.validate_payment(request.POST)
+    result = await payment_handler.validate_payment(request.POST)
 
     if result["success"]:
         logger.info(f"IPN processed successfully: {request.POST.get('tran_id')}")
@@ -638,61 +687,20 @@ class CachedDashboardStatsView(DashboardStatsView):
     """Enhanced dashboard stats with Redis caching"""
 
     def get(self, request):
-        # Try to get cached stats first
         cached_stats = redis_client.get_event_stats()
-
         if cached_stats:
             return JsonResponse(cached_stats)
 
-        # Generate fresh stats
-        current_date = timezone.now().date()
-
-        if request.user.is_superuser:
-            stats = {
-                "total_events": Event.objects.count(),
-                "total_participants": User.objects.filter(events_joined__isnull=False)
-                .distinct()
-                .count(),
-                "past_events": Event.objects.filter(date__lt=current_date).count(),
-                "upcoming_events": Event.objects.filter(
-                    date__gte=current_date, status="published"
-                ).count(),
-                "cache_status": "fresh",
-            }
-        elif request.user.groups.filter(name=UserGroups.ORGANIZER).exists():
-            user_events = Event.objects.filter(organizer=request.user)
-            stats = {
-                "total_events": user_events.count(),
-                "total_participants": User.objects.filter(
-                    events_joined__organizer=request.user
-                )
-                .distinct()
-                .count(),
-                "past_events": user_events.filter(date__lt=current_date).count(),
-                "upcoming_events": user_events.filter(
-                    date__gte=current_date, status="published"
-                ).count(),
-                "cache_status": "fresh",
-            }
-        else:
-            user_events = request.user.events_joined.all()
-            stats = {
-                "total_events": user_events.count(),
-                "upcoming_events": user_events.filter(
-                    date__gte=current_date, status="published"
-                ).count(),
-                "past_events": user_events.filter(date__lt=current_date).count(),
-                "cache_status": "fresh",
-            }
-
-        # Cache the stats for 5 minutes
+        response = super().get(request)
+        stats = json.loads(response.content)
+        stats["cache_status"] = "fresh"
         redis_client.set_event_stats(stats, timeout=300)
 
         return JsonResponse(stats)
 
 
 # Enhanced event detail view with Redis view tracking
-class CachedEventDetailView(EventDetailView):
+class EventDetailViewWithTracking(EventDetailView):
     """Enhanced event detail with view tracking"""
 
     def get(self, request, *args, **kwargs):
@@ -718,13 +726,12 @@ class CachedEventDetailView(EventDetailView):
 def get_live_stats_htmx(request):
     total_events = Event.objects.filter(status="published").count()
     total_categories = Category.objects.count()
-    all_events = Event.objects.all()
-    total_tickets_sold = sum(event.tickets_sold for event in all_events)
+    stats = Event.objects.aggregate(total_tickets_sold=Sum("tickets_sold"))
 
     context = {
         "total_events": total_events,
         "total_categories": total_categories,
-        "total_tickets_sold": total_tickets_sold,
+        "total_tickets_sold": stats["total_tickets_sold"] or 0,
     }
     return render(request, "events/_live_stats.html", context)
 
@@ -748,17 +755,17 @@ def get_organizer_stats_htmx(request):
     user = request.user
     user_events = Event.objects.filter(organizer=user)
 
-    total_revenue = sum(
-        event.ticket_price * event.tickets_sold for event in user_events
+    stats = user_events.aggregate(
+        total_revenue=Sum(F("ticket_price") * F("tickets_sold")),
+        total_tickets_sold=Sum("tickets_sold"),
     )
-    total_tickets_sold = sum(event.tickets_sold for event in user_events)
     upcoming_events_count = user_events.filter(
         date__gte=timezone.localdate(), status="published"
     ).count()
 
     context = {
-        "total_revenue": total_revenue,
-        "total_tickets_sold": total_tickets_sold,
+        "total_revenue": stats["total_revenue"] or 0,
+        "total_tickets_sold": stats["total_tickets_sold"] or 0,
         "upcoming_events_count": upcoming_events_count,
     }
     return render(request, "events/_organizer_stats.html", context)
@@ -781,15 +788,16 @@ def get_organizer_events_htmx(request):
 
 @login_required
 def get_admin_stats_htmx(request):
-    all_events = Event.objects.all()
-    total_revenue = sum(event.ticket_price * event.tickets_sold for event in all_events)
-    total_tickets_sold = sum(event.tickets_sold for event in all_events)
-    total_events = all_events.count()
+    stats = Event.objects.aggregate(
+        total_revenue=Sum(F("ticket_price") * F("tickets_sold")),
+        total_tickets_sold=Sum("tickets_sold"),
+    )
+    total_events = Event.objects.count()
     total_users = User.objects.count()
 
     context = {
-        "total_revenue": total_revenue,
-        "total_tickets_sold": total_tickets_sold,
+        "total_revenue": stats["total_revenue"] or 0,
+        "total_tickets_sold": stats["total_tickets_sold"] or 0,
         "total_events": total_events,
         "total_users": total_users,
     }

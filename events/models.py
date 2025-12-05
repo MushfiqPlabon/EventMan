@@ -6,7 +6,7 @@ from django.utils import timezone
 from model_utils import Choices
 from model_utils.models import StatusModel, TimeStampedModel
 
-from .constants import PAYMENT_STATUS_CHOICES, RSVP_STATUS_CHOICES
+from .constants import PAYMENT_STATUS_CHOICES
 
 User = get_user_model()
 
@@ -52,6 +52,7 @@ class Event(TimeStampedModel, StatusModel):
         null=True,
         blank=True,
         related_name="organized_events",
+        db_index=True,
     )
     ticket_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     tickets_sold = models.PositiveIntegerField(default=0)
@@ -88,10 +89,14 @@ class Event(TimeStampedModel, StatusModel):
 class Payment(TimeStampedModel):
     """Payment model to store transaction details"""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="payments")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="payments", db_index=True
+    )
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="payments", db_index=True
+    )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_id = models.CharField(max_length=100, unique=True)
+    transaction_id = models.CharField(max_length=100, unique=True, db_index=True)
     status = models.CharField(
         max_length=20,
         choices=PAYMENT_STATUS_CHOICES,
@@ -124,36 +129,10 @@ class Profile(TimeStampedModel):
         return f"{self.user.username} Profile"
 
 
-class RSVP(TimeStampedModel):
-    """RSVP model to track user attendance for events"""
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rsvps")
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="rsvps")
-    status = models.CharField(
-        max_length=20,
-        choices=RSVP_STATUS_CHOICES,
-        default="attending",
-    )
-
-    class Meta:
-        unique_together = ["user", "event"]
-        ordering = ["-created"]
-        verbose_name = "RSVP"
-        verbose_name_plural = "RSVPs"
-
-    def __str__(self):
-        return f"{self.user.username} - {self.event.name} ({self.status})"
-
-
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """Auto-create profile when user is created."""
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """
+    Create a profile for a new user, or save the profile for an existing user.
+    """
     if created:
         Profile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Auto-save profile when user is saved."""
-    if hasattr(instance, "profile") and not kwargs.get("raw", False):
-        instance.profile.save()

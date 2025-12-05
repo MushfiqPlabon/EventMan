@@ -6,6 +6,7 @@ Centralized payment logic with proper security measures.
 import logging
 from typing import Dict
 
+from asgiref.sync import sync_to_async
 from decouple import config
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
@@ -36,12 +37,12 @@ class PaymentHandler:
             }
         )
 
-    def create_payment_session(
+    async def create_payment_session(
         self, request: HttpRequest, event: Event, user: User
     ) -> Dict:
         """Create a secure payment session."""
         # Create payment record
-        payment = Payment.objects.create(
+        payment = await sync_to_async(Payment.objects.create)(
             user=user,
             event=event,
             amount=event.ticket_price,
@@ -77,7 +78,9 @@ class PaymentHandler:
         }
 
         try:
-            response = self.sslcz.createSession(post_body)
+            response = await sync_to_async(
+                self.sslcz.createSession, thread_sensitive=False
+            )(post_body)
             if response.get("status") == "SUCCESS":
                 logger.info(
                     f"Payment session created for user {user.id}, event {event.id}"
@@ -92,36 +95,45 @@ class PaymentHandler:
                     f"Payment session failed for user {user.id}, event {event.id}: {response}"
                 )
                 payment.status = "failed"
-                payment.save()
+                await sync_to_async(payment.save)()
                 return {"success": False, "error": "Failed to create payment session"}
         except Exception as e:
             logger.error(
                 f"Payment session exception for user {user.id}, event {event.id}: {e}"
             )
             payment.status = "failed"
-            payment.save()
+            await sync_to_async(payment.save)()
             return {"success": False, "error": str(e)}
 
-    def validate_payment(self, payment_data: Dict) -> Dict:
+    async def validate_payment(self, payment_data: Dict) -> Dict:
         """Validate payment response from SSLCommerz."""
         tran_id = payment_data.get("tran_id")
         if not tran_id:
             return {"success": False, "error": "Missing transaction ID"}
 
         try:
-            payment = get_object_or_404(Payment, transaction_id=tran_id)
+            payment = await sync_to_async(get_object_or_404)(
+                Payment, transaction_id=tran_id
+            )
 
             # Validate with SSLCommerz
-            if self.sslcz.validationResponse(payment_data):
+            is_valid = await sync_to_async(
+                self.sslcz.validationResponse, thread_sensitive=False
+            )(payment_data)
+            if is_valid:
                 # Update payment status
                 payment.status = "valid"
-                payment.save()
+                await sync_to_async(payment.save)()
 
                 # Update event and add participant
-                event = payment.event
+                event = await sync_to_async(getattr)(payment, "event")
                 event.tickets_sold += 1
-                event.participants.add(payment.user)
-                event.save()
+
+                # Add participant
+                participants = await sync_to_async(getattr)(event, "participants")
+                await sync_to_async(participants.add)(payment.user)
+
+                await sync_to_async(event.save)()
 
                 logger.info(f"Payment validated successfully: {tran_id}")
                 return {
@@ -133,7 +145,7 @@ class PaymentHandler:
             else:
                 logger.warning(f"Payment validation failed: {tran_id}")
                 payment.status = "failed"
-                payment.save()
+                await sync_to_async(payment.save)()
                 return {"success": False, "error": "Payment validation failed"}
 
         except Payment.DoesNotExist:
@@ -143,14 +155,16 @@ class PaymentHandler:
             logger.error(f"Payment validation exception for {tran_id}: {e}")
             return {"success": False, "error": str(e)}
 
-    def handle_failed_payment(self, payment_data: Dict) -> Dict:
+    async def handle_failed_payment(self, payment_data: Dict) -> Dict:
         """Handle failed payment."""
         tran_id = payment_data.get("tran_id")
         if tran_id:
             try:
-                payment = get_object_or_404(Payment, transaction_id=tran_id)
+                payment = await sync_to_async(get_object_or_404)(
+                    Payment, transaction_id=tran_id
+                )
                 payment.status = "failed"
-                payment.save()
+                await sync_to_async(payment.save)()
                 logger.info(f"Payment marked as failed: {tran_id}")
                 return {"success": True, "payment": payment}
             except Payment.DoesNotExist:
