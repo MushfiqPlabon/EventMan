@@ -1,6 +1,6 @@
 import datetime
-
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 
 from events.models import Category, Event
@@ -17,13 +17,24 @@ SUPERUSER_DATA = {
     "last_name": "User",
 }
 
+# Required admin user data (yours)
+REQUIRED_SUPERUSER_DATA = {
+    "username": "admin_required",
+    "email": "someone@example.com",
+    "password": "admin123",
+    "first_name": "Required",
+    "last_name": "Admin",
+}
+
 USER_DATA = [
+    # Existing users
     {
         "username": "organizer_jane",
         "email": "jane.doe@example.com",
         "password": "password123",
         "first_name": "Jane",
         "last_name": "Doe",
+        "role": "Organizer"
     },
     {
         "username": "participant_john",
@@ -31,6 +42,7 @@ USER_DATA = [
         "password": "password123",
         "first_name": "John",
         "last_name": "Smith",
+        "role": "Participant"
     },
     {
         "username": "participant_emily",
@@ -38,6 +50,40 @@ USER_DATA = [
         "password": "password123",
         "first_name": "Emily",
         "last_name": "Jones",
+        "role": "Participant"
+    },
+    # Required users (yours)
+    {
+        "username": "organizer1",
+        "email": "organizer1@example.com",
+        "password": "testpass123",
+        "first_name": "Organizer",
+        "last_name": "One",
+        "role": "Organizer"
+    },
+    {
+        "username": "organizer2",
+        "email": "organizer2@example.com",
+        "password": "testpass123",
+        "first_name": "Organizer",
+        "last_name": "Two",
+        "role": "Organizer"
+    },
+    {
+        "username": "participant1",
+        "email": "participant1@example.com",
+        "password": "testpass123",
+        "first_name": "Participant",
+        "last_name": "One",
+        "role": "Participant"
+    },
+    {
+        "username": "participant2",
+        "email": "participant2@example.com",
+        "password": "testpass123",
+        "first_name": "Participant",
+        "last_name": "Two",
+        "role": "Participant"
     },
 ]
 
@@ -54,9 +100,14 @@ CATEGORY_DATA = [
         "name": "Community Meetup",
         "description": "Local community gatherings and social events.",
     },
+    {
+        "name": "Workshop",
+        "description": "Educational and training workshops.",
+    },
 ]
 
 EVENT_DATA = [
+    # Existing events
     {
         "name": "DjangoCon 2025",
         "description": "The annual conference for the Django web framework.",
@@ -87,11 +138,32 @@ EVENT_DATA = [
         "organizer": "organizer_jane",
         "participants": ["participant_john"],
     },
+    # New events for required users
+    {
+        "name": "Required Organizer Event",
+        "description": "Event created by required organizer.",
+        "date": datetime.date(2025, 8, 10),
+        "time": datetime.time(14, 0, 0),
+        "location": "Required Location",
+        "category": "Tech Conference",
+        "organizer": "organizer1",
+        "participants": ["participant1", "participant2"],
+    },
+    {
+        "name": "Second Required Event",
+        "description": "Another event for required users.",
+        "date": datetime.date(2025, 9, 20),
+        "time": datetime.time(16, 0, 0),
+        "location": "Another Location",
+        "category": "Workshop",
+        "organizer": "organizer2",
+        "participants": ["participant1"],
+    },
 ]
 
 
 class Command(BaseCommand):
-    help = "Populates the database with hardcoded, deterministic sample data."
+    help = "Populates the database with hardcoded, deterministic sample data including required users."
 
     def handle(self, *args, **kwargs):
         self.stdout.write(self.style.WARNING("Starting database population..."))
@@ -102,18 +174,44 @@ class Command(BaseCommand):
         Category.objects.all().delete()
         User.objects.all().delete()
 
+        # Create groups for role-based access ahead of time
+        organizer_group, _ = Group.objects.get_or_create(name='Organizer')
+        participant_group, _ = Group.objects.get_or_create(name='Participant')
+
         # --- 2. Create Superuser ---
-        self.stdout.write(self.style.SUCCESS("\n--- Creating Superuser ---"))
-        User.objects.create_superuser(**SUPERUSER_DATA)
+        self.stdout.write(self.style.SUCCESS("\n--- Creating Superusers ---"))
+        # Create existing superuser
+        existing_admin = User.objects.create_superuser(**SUPERUSER_DATA)
         self.stdout.write(
-            f"  - Superuser: {SUPERUSER_DATA['username']} (password: {SUPERUSER_DATA['password']})"
+            f"  - Existing Superuser: {SUPERUSER_DATA['username']} (email: {SUPERUSER_DATA['email']})"
+        )
+
+        # Create required superuser
+        required_admin = User.objects.create_superuser(**REQUIRED_SUPERUSER_DATA)
+        self.stdout.write(
+            f"  - Required Superuser: {REQUIRED_SUPERUSER_DATA['username']} (email: {REQUIRED_SUPERUSER_DATA['email']})"
         )
 
         # --- 3. Create Regular Users ---
         self.stdout.write(self.style.SUCCESS("\n--- Creating Regular Users ---"))
         users_by_username = {}
         for u_data in USER_DATA:
-            user = User.objects.create_user(**u_data)
+            user = User.objects.create_user(
+                username=u_data['username'],
+                email=u_data['email'],
+                first_name=u_data['first_name'],
+                last_name=u_data['last_name'],
+                is_active=True
+            )
+            user.set_password(u_data['password'])
+            user.save()
+
+            # Assign to appropriate group based on role
+            if u_data['role'] == 'Organizer':
+                user.groups.add(organizer_group)
+            elif u_data['role'] == 'Participant':
+                user.groups.add(participant_group)
+
             users_by_username[user.username] = user
             self.stdout.write(
                 f"  - User: {u_data['username']} (password: {u_data['password']})"
@@ -151,4 +249,4 @@ class Command(BaseCommand):
 
             self.stdout.write(f"  - Event: {e_data['name']}")
 
-        self.stdout.write(self.style.SUCCESS("\nDatabase successfully populated!"))
+        self.stdout.write(self.style.SUCCESS("\nDatabase successfully populated with all required users!"))

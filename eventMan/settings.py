@@ -1,27 +1,23 @@
-import os
 from pathlib import Path
 
 import dj_database_url
-from dotenv import load_dotenv
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Load environment variables from .env
-load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-key")
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-fallback-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+DEBUG = config("DEBUG", default="False").lower() == "true"
 
 # Allowed Hosts with fallback
 ALLOWED_HOSTS = [
-    host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()
+    host.strip() for host in config("ALLOWED_HOSTS", default="").split(",") if host.strip()
 ] or [
     "*"
 ]  # Fallback to ['*'] if empty
@@ -29,13 +25,13 @@ ALLOWED_HOSTS = [
 # CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+    for origin in config("CSRF_TRUSTED_ORIGINS", default="").split(",")
     if origin.strip()
 ]
 
 # Internal IPs for Debug Toolbar
 INTERNAL_IPS = [
-    ip.strip() for ip in os.getenv("INTERNAL_IPS", "127.0.0.1").split(",") if ip.strip()
+    ip.strip() for ip in config("INTERNAL_IPS", default="127.0.0.1").split(",") if ip.strip()
 ]
 
 # Application definition (UNCHANGED)
@@ -92,11 +88,11 @@ ASGI_APPLICATION = "eventman.asgi.app"
 DATABASES = {
     "default": (
         dj_database_url.parse(
-            os.getenv("DATABASE_URL"),
+            config("DATABASE_URL"),
             conn_max_age=600,
             conn_health_checks=True,
         )
-        if os.getenv("DATABASE_URL")
+        if config("DATABASE_URL", default=None)
         else {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
