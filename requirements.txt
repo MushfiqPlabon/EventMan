@@ -21,7 +21,7 @@ pillow==11.3.0
     # via  (pyproject.toml)
 psycopg2-binary==2.9.10
     # via  (pyproject.toml)
-python-decouple==3.9
+python-decouple==3.8
 sqlparse==0.5.3
     # via
     #    (pyproject.toml)
