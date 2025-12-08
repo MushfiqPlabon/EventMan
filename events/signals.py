@@ -17,28 +17,42 @@ def send_rsvp_email_notification(
     Triggered by m2m_changed signal on Event.participants.
     """
     if action == "post_add":  # User has been added to participants
-        for user_pk in pk_set:
-            user = model.objects.get(pk=user_pk)
-            event = instance  # The event instance
+        # Optimize: Fetch all users in single query instead of individual lookups
+        users = model.objects.filter(pk__in=list(pk_set))
+        event = instance  # The event instance
+
+        for user in users:
             subject = f"RSVP Confirmation for: {event.name}"
             html_message = render_to_string(
                 "emails/rsvp_confirmation.html", {"user": user, "event": event}
             )
             plain_message = strip_tags(html_message)
-            from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER or "noreply@yourdomain.com"
+            from_email = (
+                settings.DEFAULT_FROM_EMAIL
+                or settings.EMAIL_HOST_USER
+                or "noreply@yourdomain.com"
+            )
             to_email = [user.email]
 
             try:
                 send_mail(
-                    subject, plain_message, from_email, to_email, html_message=html_message
+                    subject,
+                    plain_message,
+                    from_email,
+                    to_email,
+                    html_message=html_message,
                 )
                 # Only print to console in development when not using real SMTP backend
-                import sys
-                if settings.EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend':
+                if (
+                    settings.EMAIL_BACKEND
+                    == "django.core.mail.backends.console.EmailBackend"
+                ):
                     print(
                         f"RSVP Confirmation email sent to {user.email} for event {event.name}"
                     )
             except Exception as e:
                 # Log the error if emails fail to send
-                print(f"Failed to send RSVP confirmation email to {user.email}: {str(e)}")
+                print(
+                    f"Failed to send RSVP confirmation email to {user.email}: {str(e)}"
+                )
     # You could add 'post_remove' logic here for un-RSVP notifications if needed

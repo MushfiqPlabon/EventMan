@@ -1,3 +1,6 @@
+THIS IS A DEMO PROJECT, NOT REAL!
+---------------------------------
+
 {% load account %}
 {% user_display user as user_display %}
 {% load i18n %}

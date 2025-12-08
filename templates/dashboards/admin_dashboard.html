@@ -13,15 +13,20 @@
             <p class="text-blue-700 dark:text-blue-300">View and edit all user accounts.</p>
             <a href="{% url 'admin:auth_user_changelist' %}" class="mt-2 inline-block text-blue-600 hover:underline dark:text-blue-300">Go to Users</a>
         </div>
+        <div class="bg-yellow-100 dark:bg-yellow-900 p-4 rounded-md shadow">
+            <h2 class="text-xl font-semibold text-yellow-800 dark:text-yellow-200">Manage Roles</h2>
+            <p class="text-yellow-700 dark:text-yellow-300">Assign roles to users (Admin, Organizer, Participant).</p>
+            <a href="{% url 'manage_user_roles' %}" class="mt-2 inline-block text-yellow-600 hover:underline dark:text-yellow-300">Manage Roles</a>
+        </div>
         <div class="bg-green-100 dark:bg-green-900 p-4 rounded-md shadow">
             <h2 class="text-xl font-semibold text-green-800 dark:text-green-200">Manage Events</h2>
             <p class="text-green-700 dark:text-green-300">Create, update, and delete all events.</p>
-            <a href="#" class="mt-2 inline-block text-green-600 hover:underline dark:text-green-300">Go to Events</a>
+            <a href="{% url 'event_list' %}" class="mt-2 inline-block text-green-600 hover:underline dark:text-green-300">Go to Events</a>
         </div>
         <div class="bg-purple-100 dark:bg-purple-900 p-4 rounded-md shadow">
             <h2 class="text-xl font-semibold text-purple-800 dark:text-purple-200">Manage Categories</h2>
             <p class="text-purple-700 dark:text-purple-300">Add, edit, or remove event categories.</p>
-            <a href="#" class="mt-2 inline-block text-purple-600 hover:underline dark:text-purple-300">Go to Categories</a>
+            <a href="{% url 'category_list' %}" class="mt-2 inline-block text-purple-600 hover:underline dark:text-purple-300">Go to Categories</a>
         </div>
     </div>
 </div>

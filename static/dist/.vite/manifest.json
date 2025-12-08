@@ -7,6 +7,18 @@
       "main_css.css"
     ]
   },
+  "static/src/js/event_detail.js": {
+    "file": "event_detail_js.js",
+    "name": "event_detail_js",
+    "src": "static/src/js/event_detail.js",
+    "isEntry": true
+  },
+  "static/src/js/sweetalert.js": {
+    "file": "sweetalert_js.js",
+    "name": "sweetalert_js",
+    "src": "static/src/js/sweetalert.js",
+    "isEntry": true
+  },
   "static/src/js/toggle.js": {
     "file": "toggle_js.js",
     "name": "toggle_js",

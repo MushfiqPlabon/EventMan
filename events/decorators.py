@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
-from django.urls import reverse_lazy  # Use reverse_lazy for decorators
+from django.core.cache import cache
+from django.urls import reverse_lazy
 
 
 def is_admin(user):
@@ -7,65 +9,55 @@ def is_admin(user):
     return user.is_authenticated and user.is_superuser
 
 
+def _get_user_groups_cached(user):
+    """Cache user group membership to avoid repeated database queries."""
+    if not user.is_authenticated:
+        return set()
+
+    cache_key = f"user_groups_{user.id}"
+    user_groups = cache.get(cache_key)
+    if user_groups is None:
+        user_groups = set(user.groups.values_list("name", flat=True))
+        cache.set(
+            cache_key, user_groups, settings.USER_GROUPS_CACHE_TIMEOUT
+        )  # Configurable cache timeout
+    return user_groups
+
+
 def is_organizer(user):
     """Checks if the user belongs to the 'Organizer' group."""
-    return user.is_authenticated and user.groups.filter(name="Organizer").exists()
+    if not user.is_authenticated:
+        return False
+    user_groups = _get_user_groups_cached(user)
+    return "Organizer" in user_groups
 
 
 def is_participant(user):
     """Checks if the user belongs to the 'Participant' group."""
-    return user.is_authenticated and user.groups.filter(name="Participant").exists()
+    if not user.is_authenticated:
+        return False
+    user_groups = _get_user_groups_cached(user)
+    return "Participant" in user_groups
 
 
-# Decorators to restrict access
-def admin_required(
-    function=None, redirect_field_name=None, login_url=reverse_lazy("account_login")
-):
-    """Decorator for views that require admin (superuser) access."""
-    actual_decorator = user_passes_test(
-        is_admin, login_url=login_url, redirect_field_name=redirect_field_name
-    )
-    if function:
-        return actual_decorator(function)
-    return actual_decorator
+# Decorators to restrict access - using single helper for all
+def _restricted_access(user_check_func):
+    def decorator(func=None):
+        actual_decorator = user_passes_test(
+            user_check_func, login_url=reverse_lazy("account_login")
+        )
+        return actual_decorator(func) if func else actual_decorator
+
+    return decorator
 
 
-def organizer_required(
-    function=None, redirect_field_name=None, login_url=reverse_lazy("account_login")
-):
-    """Decorator for views that require 'Organizer' group membership."""
-    actual_decorator = user_passes_test(
-        is_organizer, login_url=login_url, redirect_field_name=redirect_field_name
-    )
-    if function:
-        return actual_decorator(function)
-    return actual_decorator
+admin_required = _restricted_access(is_admin)
+organizer_required = _restricted_access(is_organizer)
+participant_required = _restricted_access(is_participant)
 
 
-def participant_required(
-    function=None, redirect_field_name=None, login_url=reverse_lazy("account_login")
-):
-    """Decorator for views that require 'Participant' group membership."""
-    actual_decorator = user_passes_test(
-        is_participant, login_url=login_url, redirect_field_name=redirect_field_name
-    )
-    if function:
-        return actual_decorator(function)
-    return actual_decorator
+def _check_organizer_or_admin(user):
+    return is_organizer(user) or is_admin(user)
 
 
-# Combined decorator for Organizer or Admin access (e.g., for managing events)
-def organizer_or_admin_required(
-    function=None, redirect_field_name=None, login_url=reverse_lazy("account_login")
-):
-    """Decorator for views that require 'Organizer' or Admin (superuser) access."""
-
-    def check_user(user):
-        return is_organizer(user) or is_admin(user)
-
-    actual_decorator = user_passes_test(
-        check_user, login_url=login_url, redirect_field_name=redirect_field_name
-    )
-    if function:
-        return actual_decorator(function)
-    return actual_decorator
+organizer_or_admin_required = _restricted_access(_check_organizer_or_admin)

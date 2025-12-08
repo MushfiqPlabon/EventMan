@@ -1,17 +1,21 @@
-# event_management_system/events/models.py
-
-from django.contrib.auth import get_user_model  # Import Django's User model
+# Import the setting
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-User = get_user_model()  # Get the active User model
+User = get_user_model()
 
-# Define a default image path for events
-DEFAULT_EVENT_IMAGE = "event_images/default_event.webp"
+
+def validate_future_date(value):
+    """Validate that the date is not in the past - O(1) operation."""
+    if value < timezone.now().date():
+        raise ValidationError('Event date cannot be in the past.')
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, db_index=True)
     description = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -22,35 +26,49 @@ class Category(models.Model):
 
 
 class Event(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, db_index=True)
     description = models.TextField()
-    date = models.DateField()
+    date = models.DateField(db_index=True, validators=[validate_future_date])
     time = models.TimeField()
-    location = models.CharField(max_length=255)
+    location = models.CharField(max_length=255, db_index=True)
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True, blank=True
+        Category, on_delete=models.SET_NULL, null=True, blank=True, db_index=True
     )
-    image = models.ImageField(upload_to="event_images/", default=DEFAULT_EVENT_IMAGE)
-    # New: ManyToMany relationship with the User model for participants
+    image = models.ImageField(
+        upload_to="event_images/", default=settings.EVENT_DEFAULT_IMAGE
+    )
     participants = models.ManyToManyField(
         User, related_name="events_joined", blank=True
     )
-    # New: Link event to an Organizer (User)
     organizer = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="organized_events",
+        db_index=True,
     )
 
     def __str__(self):
         return self.name
 
-    def is_upcoming(self):
-        """Checks if the event date is in the future."""
-        return self.date >= timezone.now().date()
+    def clean(self):
+        """Additional validation to prevent past dates - O(1) operation."""
+        if self.date and self.date < timezone.now().date():
+            raise ValidationError('Event date cannot be in the past.')
+        super().clean()
 
-    def is_past(self):
-        """Checks if the event date is in the past."""
-        return self.date < timezone.now().date()
+    def save(self, *args, **kwargs):
+        """Override save method to run validation - O(1) operation."""
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_upcoming_events(cls):
+        """Class method to get upcoming events using queryset."""
+        return cls.objects.filter(date__gte=timezone.now().date())
+
+    @classmethod
+    def get_past_events(cls):
+        """Class method to get past events using queryset."""
+        return cls.objects.filter(date__lt=timezone.now().date())

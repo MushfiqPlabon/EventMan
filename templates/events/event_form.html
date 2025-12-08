@@ -31,6 +31,7 @@
                 {% endfor %}
             </div>
         {% endfor %}
+        <div id="file-error" class="text-red-500 text-sm mb-2 hidden"></div>
         <div class="flex justify-end space-x-4 mt-6">
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
                 Save Event
@@ -40,5 +41,56 @@
             </a>
         </div>
     </form>
+
+    <script>
+        // Client-side validation for image upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.querySelector('input[type="file"]');
+            const fileErrorDiv = document.getElementById('file-error');
+
+            if (imageInput) {
+                imageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Check file size (5MB = 5 * 1024 * 1024 bytes)
+                        const maxSize = 5 * 1024 * 1024;
+                        if (file.size > maxSize) {
+                            fileErrorDiv.textContent = 'File size exceeds 5MB limit';
+                            fileErrorDiv.classList.remove('hidden');
+                            e.target.value = ''; // Clear the input
+                            return;
+                        }
+
+                        // Check file type
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                            fileErrorDiv.textContent = 'Please select a valid image file (JPEG, PNG, or WEBP)';
+                            fileErrorDiv.classList.remove('hidden');
+                            e.target.value = ''; // Clear the input
+                            return;
+                        }
+
+                        // Valid file
+                        fileErrorDiv.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Add date validation to ensure date is not in the past
+            const dateInput = document.querySelector('input[type="date"]');
+            if (dateInput) {
+                dateInput.addEventListener('change', function(e) {
+                    const selectedDate = new Date(e.target.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // Set time to beginning of day
+
+                    if (selectedDate < today) {
+                        alert('Event date cannot be in the past');
+                        e.target.value = ''; // Clear the date
+                    }
+                });
+            }
+        });
+    </script>
 </div>
 {% endblock %}

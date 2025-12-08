@@ -14,6 +14,8 @@ export default defineConfig({
         // Define named entry points using absolute paths for robustness
         main_css: resolve(__dirname, "static/src/input.css"),
         toggle_js: resolve(__dirname, "static/src/js/toggle.js"),
+        sweetalert_js: resolve(__dirname, "static/src/js/sweetalert.js"),
+        event_detail_js: resolve(__dirname, "static/src/js/event_detail.js"),
       },
       output: {
         // Ensure output filenames are predictable and match Django's static tag expectations
