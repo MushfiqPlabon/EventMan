@@ -1,9 +1,8 @@
 import { defineConfig } from "vite";
-import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "path"; // Import resolve for absolute paths
 
 export default defineConfig({
-  plugins: [tailwindcss()],
+  plugins: [],
   // No 'root' here if we're using absolute paths for input
   // root: 'static', // Removed root to use absolute paths in input for clarity
 

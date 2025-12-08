@@ -7,4 +7,4 @@ class EventsConfig(AppConfig):
 
     def ready(self):
         # Import signals here to ensure they are connected
-        pass
+        import events.signals

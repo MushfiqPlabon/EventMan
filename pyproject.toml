@@ -1,0 +1,18 @@
+[project]
+name = ""
+version = "0.0.1"
+dependencies = [
+    "asgiref==3.9.1",
+    "dj-database-url==3.0.1",
+    "django==5.2.4",
+    "django-allauth==65.10.0",
+    "django-debug-toolbar==5.2.0",
+    "pillow==11.3.0",
+    "psycopg2-binary==2.9.10",
+    "python-decouple==3.8",
+    "sqlparse==0.5.3",
+    "tzdata==2025.2",
+]
+
+[tool.uv]
+package = false
