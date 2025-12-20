@@ -1,0 +1,100 @@
+{% load i18n %}
+
+{% if request.resolver_match.view_name %}
+<nav aria-label="Breadcrumb" class="mb-6">
+    <ol class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+        <li>
+            <a href="{% url 'home' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                {% trans "Home" %}
+            </a>
+        </li>
+        <li class="flex items-center">
+            <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+        </li>
+        
+        {% if request.resolver_match.view_name == 'event_list' %}
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Events" %}
+            </li>
+        {% elif request.resolver_match.view_name == 'event_detail' %}
+            <li>
+                <a href="{% url 'event_list' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    {% trans "Events" %}
+                </a>
+            </li>
+            <li class="flex items-center">
+                <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                </svg>
+            </li>
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {{ object.name|truncatewords:4 }}
+            </li>
+        {% elif request.resolver_match.view_name == 'event_create' %}
+            <li>
+                <a href="{% url 'event_list' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    {% trans "Events" %}
+                </a>
+            </li>
+            <li class="flex items-center">
+                <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                </svg>
+            </li>
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Create Event" %}
+            </li>
+        {% elif request.resolver_match.view_name == 'event_update' %}
+            <li>
+                <a href="{% url 'event_list' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    {% trans "Events" %}
+                </a>
+            </li>
+            <li class="flex items-center">
+                <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                </svg>
+            </li>
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Edit Event" %}
+            </li>
+        {% elif request.resolver_match.view_name == 'category_list' %}
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Categories" %}
+            </li>
+        {% elif request.resolver_match.view_name == 'category_create' %}
+            <li>
+                <a href="{% url 'category_list' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    {% trans "Categories" %}
+                </a>
+            </li>
+            <li class="flex items-center">
+                <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                </svg>
+            </li>
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Create Category" %}
+            </li>
+        {% elif request.resolver_match.view_name == 'dashboard_redirect' %}
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Dashboard" %}
+            </li>
+        {% elif request.resolver_match.view_name == 'organizer_dashboard' %}
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Organizer Dashboard" %}
+            </li>
+        {% elif request.resolver_match.view_name == 'participant_dashboard' %}
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Participant Dashboard" %}
+            </li>
+        {% elif request.resolver_match.view_name == 'admin_dashboard' %}
+            <li class="text-gray-900 dark:text-gray-200" aria-current="page">
+                {% trans "Admin Dashboard" %}
+            </li>
+        {% endif %}
+    </ol>
+</nav>
+{% endif %}

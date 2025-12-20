@@ -1,0 +1,71 @@
+{# Generic form template that can handle different models #}
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title|default:"Form" }}{% endblock %}
+
+{% block breadcrumbs %}
+    {% include 'includes/breadcrumbs.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+    {% if messages %}
+        <div role="alert" aria-live="polite">
+            <ul class="mb-4">
+                {% for message in messages %}
+                    <li class="p-3 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                        {{ message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">{{ title|default:"Form" }}</h1>
+
+    <form method="post" enctype="multipart/form-data" id="generic-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+            <div class="mb-4">
+                <label for="{{ field.id_for_label }}" class="block text-gray-700 dark:text-gray-300 font-bold mb-2">
+                    {{ field.label }}
+                    {% if field.field.required %}
+                        <span class="text-red-500">*</span>
+                    {% endif %}
+                </label>
+
+                {{ field }}
+
+                {% if field.help_text %}
+                    <small class="form-text text-muted text-gray-600 dark:text-gray-400">{{ field.help_text }}</small>
+                {% endif %}
+
+                {% if field.errors %}
+                    <div class="text-red-500 dark:text-red-400 text-sm mt-1" role="alert">
+                        {% for error in field.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <div class="flex items-center justify-between">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                {% if object %}Update{% else %}Create{% endif %} {{ title|default:"Item" }}
+            </button>
+            <a href="{% url 'event_list' %}" class="text-blue-500 hover:text-blue-800 font-medium">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

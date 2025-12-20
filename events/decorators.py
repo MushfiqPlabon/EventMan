@@ -1,6 +1,4 @@
-from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
-from django.core.cache import cache
 from django.urls import reverse_lazy
 
 
@@ -9,35 +7,22 @@ def is_admin(user):
     return user.is_authenticated and user.is_superuser
 
 
-def _get_user_groups_cached(user):
-    """Cache user group membership to avoid repeated database queries."""
-    if not user.is_authenticated:
-        return set()
-
-    cache_key = f"user_groups_{user.id}"
-    user_groups = cache.get(cache_key)
-    if user_groups is None:
-        user_groups = set(user.groups.values_list("name", flat=True))
-        cache.set(
-            cache_key, user_groups, settings.USER_GROUPS_CACHE_TIMEOUT
-        )  # Configurable cache timeout
-    return user_groups
-
-
 def is_organizer(user):
     """Checks if the user belongs to the 'Organizer' group."""
     if not user.is_authenticated:
         return False
-    user_groups = _get_user_groups_cached(user)
-    return "Organizer" in user_groups
+    # Use Django ORM for better maintainability and security
+
+    return user.groups.filter(name="Organizer").exists()
 
 
 def is_participant(user):
     """Checks if the user belongs to the 'Participant' group."""
     if not user.is_authenticated:
         return False
-    user_groups = _get_user_groups_cached(user)
-    return "Participant" in user_groups
+    # Use Django ORM for better maintainability and security
+
+    return user.groups.filter(name="Participant").exists()
 
 
 # Decorators to restrict access - using single helper for all

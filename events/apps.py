@@ -7,4 +7,8 @@ class EventsConfig(AppConfig):
 
     def ready(self):
         # Import signals here to ensure they are connected
-        pass
+        import events.signals  # noqa: F401
+        import events.user_profile_signals  # noqa: F401
+
+        # Import the signal handler to create default groups
+        from . import apps_ready_signals  # noqa: F401

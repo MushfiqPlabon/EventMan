@@ -3,6 +3,10 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block breadcrumbs %}
+    {% include 'includes/breadcrumbs.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="max-w-xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
     <h1 class="text-3xl font-bold text-center text-blue-600 dark:text-blue-400 mb-6">{{ title }}</h1>
@@ -17,7 +21,7 @@
         </ul>
     {% endif %}
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+    <form id="event-form" method="POST" enctype="multipart/form-data" class="space-y-4">
         {% csrf_token %}
         {% for field in form %}
             <div class="mb-4">
@@ -27,14 +31,15 @@
                     <p class="text-gray-600 dark:text-gray-400 text-xs italic mt-1">{{ field.help_text }}</p>
                 {% endif %}
                 {% for error in field.errors %}
-                    <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+                    <p class="text-red-500 dark:text-red-400 text-xs italic mt-1">{{ error }}</p>
                 {% endfor %}
             </div>
         {% endfor %}
-        <div id="file-error" class="text-red-500 text-sm mb-2 hidden"></div>
+        <div id="file-error" class="text-red-500 dark:text-red-400 text-sm mb-2 hidden"></div>
         <div class="flex justify-end space-x-4 mt-6">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                Save Event
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" id="submit-btn">
+                <span class="button-text">Save Event</span>
+                <span class="loading-spinner hidden">Saving...</span>
             </button>
             <a href="{% if event %}{% url 'event_detail' event.pk %}{% else %}{% url 'event_list' %}{% endif %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
                 Cancel
@@ -89,6 +94,18 @@
                         e.target.value = ''; // Clear the date
                     }
                 });
+            }
+        });
+
+        // Add loading indicator to form submission
+        document.getElementById('event-form').addEventListener('submit', function(e) {
+            // Show form loading indicator
+            window.eventDetailUtils.showFormLoading('event-form');
+
+            // Also show button loading state
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                window.eventDetailUtils.showLoading(submitBtn);
             }
         });
     </script>

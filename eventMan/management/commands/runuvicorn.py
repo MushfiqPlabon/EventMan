@@ -30,8 +30,8 @@ class Command(BaseCommand):
         parser.add_argument(
             "--workers",
             type=int,
-            default=1,
-            help="Number of worker processes (production recommended: 2-4)",
+            default=4,
+            help="Number of worker processes (default: 1 for dev, 2-4 for prod)",
         )
 
     def handle(self, *args, **options):
@@ -39,9 +39,7 @@ class Command(BaseCommand):
             import uvicorn
         except ImportError:
             self.stderr.write(
-                self.style.ERROR(
-                    "uvicorn is not installed. Please run: pip install uvicorn"
-                )
+                self.style.ERROR("uvicorn is not installed. Please run: uv add uvicorn")
             )
             sys.exit(1)
 

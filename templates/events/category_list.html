@@ -3,6 +3,10 @@
 
 {% block title %}{% trans "Category List" %}{% endblock %}
 
+{% block breadcrumbs %}
+    {% include 'includes/breadcrumbs.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
     <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-6">{% trans "Event Categories" %}</h1>

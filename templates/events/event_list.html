@@ -3,25 +3,32 @@
 
 {% block title %}{% trans "Event List" %}{% endblock %}
 
+{% block breadcrumbs %}
+    {% include 'includes/breadcrumbs.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
     <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-6">{% trans "All Events" %}</h1>
 
     {# Search and Filter Form #}
-    <form method="GET" action="{% url 'event_list' %}" class="mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-md shadow-inner grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+    <form method="GET" action="{% url 'event_list' %}" class="mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-md shadow-inner grid grid-cols-1 md:grid-cols-3 gap-4 items-end" role="search">
         <div class="col-span-1 md:col-span-2">
             <label for="search_query" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Search Events:</label>
             <input type="text" id="search_query" name="q" value="{{ current_query|default:'' }}"
                    placeholder="Search by name or location..."
-                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-                          dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500">
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400
+                          dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500"
+                   aria-describedby="search-help">
+            <div id="search-help" class="text-gray-500 text-xs mt-1">Enter at least 2 characters to search by name or location</div>
         </div>
 
         <div>
             <label for="filter_status" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filter by Status:</label>
             <select id="filter_status" name="status"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-                           dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500">
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400
+                           dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500"
+                    aria-label="Select event status filter">
                 <option value="">All</option>
                 <option value="upcoming" {% if current_status == 'upcoming' %}selected{% endif %}>Upcoming</option>
                 <option value="past" {% if current_status == 'past' %}selected{% endif %}>Past</option>
@@ -31,8 +38,9 @@
         <div>
             <label for="filter_category" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filter by Category:</label>
             <select id="filter_category" name="category"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-                           dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500">
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400
+                           dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500"
+                    aria-label="Select event category filter">
                 <option value="">All Categories</option>
                 {% for category in categories %}
                     <option value="{{ category.name }}" {% if current_category == category.name %}selected{% endif %}>{{ category.name }}</option>
@@ -41,41 +49,97 @@
         </div>
 
         <div class="col-span-full flex justify-end">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 mr-2">Apply Filters</button>
-            <a href="{% url 'event_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">Clear Filters</a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    aria-label="Apply selected filters">
+                Apply Filters
+            </button>
+            <a href="{% url 'event_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+               aria-label="Clear all filters and show all events">
+                Clear Filters
+            </a>
         </div>
     </form>
 
     {# Event List Display #}
     {% if events %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 sr-only">Event Listings</h2>
             {% for event in events %}
-                <div class="bg-gray-100 dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
+                <article class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-700/30 dark:to-gray-600/30 rounded-xl shadow-md overflow-hidden border border-gray-200/50 dark:border-gray-600/50" aria-labelledby="event-name-{{ event.pk }}">
                     {% if event.image %}
                         <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
                     {% endif %}
-                    <div class="p-4">
-                        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{{ event.name }}</h2>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
-                            <span class="font-medium">Date:</span> {{ event.date|date:"M d, Y" }}
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
-                            <span class="font-medium">Time:</span> {{ event.time|time:"P" }}
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
-                            <span class="font-medium">Location:</span> {{ event.location }}
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                            <span class="font-medium">Category:</span> {{ event.category.name|default:"N/A" }}
-                        </p>
+                    <div class="p-5">
+                        <header class="mb-3">
+                            <h3 id="event-name-{{ event.pk }}" class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ event.name }}</h3>
+                        </header>
+                        <dl class="text-gray-600 dark:text-gray-400 text-sm space-y-2 mb-4">
+                            <div class="flex flex-col sm:flex-row">
+                                <dt class="font-medium text-gray-700 dark:text-gray-300 sm:w-24 flex-shrink-0">Date:</dt>
+                                <dd class="sm:ml-2">{{ event.date|date:"M d, Y" }}</dd>
+                            </div>
+                            <div class="flex flex-col sm:flex-row">
+                                <dt class="font-medium text-gray-700 dark:text-gray-300 sm:w-24 flex-shrink-0">Time:</dt>
+                                <dd class="sm:ml-2">{{ event.time|time:"P" }}</dd>
+                            </div>
+                            <div class="flex flex-col sm:flex-row">
+                                <dt class="font-medium text-gray-700 dark:text-gray-300 sm:w-24 flex-shrink-0">Location:</dt>
+                                <dd class="sm:ml-2">{{ event.location }}</dd>
+                            </div>
+                            <div class="flex flex-col sm:flex-row">
+                                <dt class="font-medium text-gray-700 dark:text-gray-300 sm:w-24 flex-shrink-0">Category:</dt>
+                                <dd class="sm:ml-2">{{ event.category.name|default:"N/A" }}</dd>
+                            </div>
+                        </dl>
                         <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">{{ event.description|truncatewords:20 }}</p>
-                        <a href="{% url 'event_detail' event.pk %}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md transition duration-300">
-                            View Details ({{ event.participants.count }} participants)
+                        <a href="{% url 'event_detail' event.pk %}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-lg transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                           aria-label="View details for event {{ event.name }}">
+                            View Details ({{ event.participant_count }} participants)
                         </a>
                     </div>
-                </div>
+                </article>
             {% endfor %}
         </div>
+
+        {# Pagination Controls #}
+        {% if events.has_other_pages %}
+            <nav class="mt-10 flex justify-center" aria-label="Pagination">
+                <ul class="inline-flex items-center -space-x-px">
+                    {% if events.has_previous %}
+                        <li>
+                            <a href="?page={{ events.previous_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}"
+                               class="block py-2 px-3 ml-0 leading-tight text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                <span class="sr-only">Previous</span>
+                                <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for i in events.paginator.page_range %}
+                        {% if events.number == i %}
+                            <li>
+                                <a href="#" aria-current="page" class="z-10 py-2 px-3 leading-tight text-blue-600 bg-blue-50 border border-blue-300 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">{{ i }}</a>
+                            </li>
+                        {% elif i > events.number|add:'-3' and i < events.number|add:'3' %}
+                            <li>
+                                <a href="?page={{ i }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}"
+                                   class="py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if events.has_next %}
+                        <li>
+                            <a href="?page={{ events.next_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}"
+                               class="block py-2 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                <span class="sr-only">Next</span>
+                                <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
     {% else %}
         <p class="text-gray-700 dark:text-gray-300 text-center">No events found matching your criteria.</p>
     {% endif %}

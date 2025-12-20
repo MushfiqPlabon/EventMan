@@ -19,7 +19,32 @@
 
     <form class="signup" id="signup_form" method="POST" action="{% url 'account_signup' %}">
         {% csrf_token %}
-        {{ form.as_p }}
+
+        {% if form.non_field_errors %}
+            <div class="mb-4 p-3 rounded-md bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+            {% if field.name != 'email2' %}  <!-- Skip email2 field as it's handled separately by allauth -->
+            <div class="mb-4">
+                <label for="{{ field.id_for_label }}" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                    {{ field.label }}{% if field.field.required %} *{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                    <p class="text-gray-600 dark:text-gray-400 text-xs italic mt-1">{{ field.help_text }}</p>
+                {% endif %}
+                {% if field.errors %}
+                    <p class="mt-1 text-sm text-red-500 dark:text-red-400">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+
         {% if redirect_field_value %}
         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
         {% endif %}

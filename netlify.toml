@@ -1,0 +1,19 @@
+[build]
+  command = "bun install && bun run build && uv run manage.py collectstatic --noinput && uv run manage.py migrate --noinput"
+  publish = "staticfiles"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/static/*"
+  to = "/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/api"
+  status = 200

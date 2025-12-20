@@ -6,14 +6,22 @@ dependencies = [
     "dj-database-url==3.0.1",
     "django==5.2.4",
     "django-allauth==65.10.0",
+    "django-braces==1.15.0",
     "django-cachalot>=2.8.0",
     "django-debug-toolbar==5.2.0",
+    "django-extensions>=4.1",
+    "django-extra-views==0.15.0",
+    "django-filter==24.3",
+    "django-querycount>=0.8.3",
+    "dotenv>=0.9.9",
+    "mangum>=0.19.0",
     "pillow==11.3.0",
     "psycopg2-binary==2.9.10",
     "python-decouple==3.8",
     "sqlparse==0.5.3",
     "tzdata==2025.2",
     "uvicorn>=0.38.0",
+    "whitenoise>=6.11.0",
 ]
 
 [tool.uv]

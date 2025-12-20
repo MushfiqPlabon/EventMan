@@ -3,48 +3,131 @@
 
 {% block title %}{% trans "Participant Dashboard" %}{% endblock %}
 
+{% block breadcrumbs %}
+    {% include 'includes/breadcrumbs.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
     <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-6">{% trans "Participant Dashboard" %}</h1>
     <p class="text-gray-700 dark:text-gray-300 mb-6">Welcome, {{ user.first_name|default:user.email }}! Here you can view events you have RSVP'd to.</p>
 
-    <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">My RSVP'd Events</h2>
-    {% if rsvp_events %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for event in rsvp_events %}
-                <div class="bg-gray-100 dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
-                    {% if event.image %}
-                        <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
-                    {% endif %}
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{{ event.name }}</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
-                            <span class="font-medium">Date:</span> {{ event.date|date:"M d, Y" }}
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
-                            <span class="font-medium">Time:</span> {{ event.time|time:"P" }}
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">
-                            <span class="font-medium">Location:</span> {{ event.location }}
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                            <span class="font-medium">Category:</span> {{ event.category.name|default:"N/A" }}
-                        </p>
-                        <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">{{ event.description|truncatewords:20 }}</p>
-                        <a href="{% url 'event_detail' event.pk %}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md transition duration-300">
-                            View Details
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
+    <!-- Email verification status - O(1) lookup via context processor -->
+    {% if needs_email_verification %}
+    <aside class="mb-6 p-5 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30 rounded-lg shadow-md border border-yellow-200/50 dark:border-yellow-700/50">
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-lg font-semibold text-yellow-800 dark:text-yellow-200 flex items-center">
+                    <span class="mr-2">📧</span> Email Verification Needed
+                </h2>
+                <p class="text-yellow-700 dark:text-yellow-300 mt-1">Your email address is not verified. Verify your email to complete your account setup.</p>
+            </div>
+            <a href="{% url 'request_verification_email' %}" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400">Send Verification Email</a>
         </div>
+    </aside>
     {% else %}
-        <p class="text-gray-700 dark:text-gray-300 text-center">You have not RSVP'd to any events yet.</p>
-        <div class="mt-6 text-center">
-            <a href="{% url 'event_list' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                Browse Events
-            </a>
+    <aside class="mb-6 p-5 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg shadow-md border border-green-200/50 dark:border-green-700/50">
+        <div class="flex items-center">
+            <div class="mr-3 text-green-600 dark:text-green-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold text-green-800 dark:text-green-200">Email Verified</h2>
+                <p class="text-green-700 dark:text-green-300 mt-1">Your email address has been verified.</p>
+            </div>
         </div>
+    </aside>
     {% endif %}
+
+    <section>
+        <header class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400">My RSVP'd Events</h2>
+            <span class="text-gray-600 dark:text-gray-400 text-sm">
+                Showing {{ rsvp_events.count|default:"0" }} event{{ rsvp_events.count|pluralize }}
+            </span>
+        </header>
+
+        {% if rsvp_events %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for event in rsvp_events %}
+                    <article class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/30 dark:to-gray-600/30 rounded-lg shadow-md overflow-hidden border border-gray-200/50 dark:border-gray-500/50">
+                        {% if event.image %}
+                            <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
+                        {% endif %}
+                        <div class="p-5">
+                            <header class="mb-3">
+                                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ event.name }}</h3>
+                                <div class="flex items-center mt-2">
+                                    <span class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <time datetime="{{ event.date|date:'Y-m-d' }}">{{ event.date|date:"M d, Y" }}</time>
+                                    </span>
+                                    <span class="inline-flex items-center ml-3 text-sm text-gray-500 dark:text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {{ event.time|time:"P" }}
+                                    </span>
+                                </div>
+                            </header>
+
+                            <div class="space-y-2 mb-4">
+                                <p class="flex items-start text-gray-600 dark:text-gray-400 text-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span>{{ event.location }}</span>
+                                </p>
+                                <p class="flex items-start text-gray-600 dark:text-gray-400 text-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    <span>{{ event.category.name|default:"N/A" }}</span>
+                                </p>
+                                <p class="flex items-start text-gray-600 dark:text-gray-400 text-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    <span>{{ event.participant_count }} participants</span>
+                                </p>
+                            </div>
+
+                            <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">{{ event.description|truncatewords:20 }}</p>
+
+                            <footer class="flex justify-between items-center">
+                                <a href="{% url 'event_detail' event.pk %}" class="bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    View Details
+                                </a>
+                                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 rounded-full">
+                                    RSVP'd
+                                </span>
+                            </footer>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-200">No RSVP'd Events</h3>
+                <p class="mt-2 text-gray-700 dark:text-gray-400">You haven't RSVP'd to any events yet.</p>
+                <div class="mt-6">
+                    <a href="{% url 'event_list' %}" class="inline-flex items-center bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        Browse Events
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

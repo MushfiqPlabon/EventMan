@@ -1,0 +1,116 @@
+<!-- Base form template that can be extended for different model forms -->
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+    {% include 'includes/breadcrumbs.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold text-center text-blue-600 dark:text-blue-400 mb-6">{{ title }}</h1>
+
+    {% if messages %}
+        <ul class="mb-4">
+            {% for message in messages %}
+                <li class="p-3 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                    {{ message }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form id="model-form" method="POST" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="mb-4">
+                <label for="{{ field.id_for_label }}" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">{{ field.label_tag }}</label>
+                {{ field }} {# This renders the widget with the classes defined in forms.py #}
+                {% if field.help_text %}
+                    <p class="text-gray-600 dark:text-gray-400 text-xs italic mt-1">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                    <p class="text-red-500 dark:text-red-400 text-xs italic mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <div id="file-error" class="text-red-500 dark:text-red-400 text-sm mb-2 hidden"></div>
+        <div class="flex justify-end space-x-4 mt-6">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" id="submit-btn">
+                <span class="button-text">{% if object %}Update{% else %}Save{% endif %} {{ title|default:"Item" }}</span>
+                <span class="loading-spinner hidden">Saving...</span>
+            </button>
+            <a href="{% if object %}{% url detail_url_name object.pk|default:0 %}{% else %}{% url list_url_name %}{% endif %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
+                Cancel
+            </a>
+        </div>
+    </form>
+
+    <script>
+        // Client-side validation for image upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.querySelector('input[type="file"]');
+            const fileErrorDiv = document.getElementById('file-error');
+
+            if (imageInput) {
+                imageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Check file size (5MB = 5 * 1024 * 1024 bytes)
+                        const maxSize = 5 * 1024 * 1024;
+                        if (file.size > maxSize) {
+                            fileErrorDiv.textContent = 'File size exceeds 5MB limit';
+                            fileErrorDiv.classList.remove('hidden');
+                            e.target.value = ''; // Clear the input
+                            return;
+                        }
+
+                        // Check file type
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                            fileErrorDiv.textContent = 'Please select a valid image file (JPEG, PNG, or WEBP)';
+                            fileErrorDiv.classList.remove('hidden');
+                            e.target.value = ''; // Clear the input
+                            return;
+                        }
+
+                        // Valid file
+                        fileErrorDiv.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Add date validation to ensure date is not in the past
+            const dateInput = document.querySelector('input[type="date"]');
+            if (dateInput) {
+                dateInput.addEventListener('change', function(e) {
+                    const selectedDate = new Date(e.target.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // Set time to beginning of day
+
+                    if (selectedDate < today) {
+                        alert('Date cannot be in the past');
+                        e.target.value = ''; // Clear the date
+                    }
+                });
+            }
+        });
+
+        // Add loading indicator to form submission
+        document.getElementById('model-form').addEventListener('submit', function(e) {
+            // Show form loading indicator
+            if (window.eventDetailUtils && window.eventDetailUtils.showFormLoading) {
+                window.eventDetailUtils.showFormLoading('model-form');
+            }
+
+            // Also show button loading state
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn && window.eventDetailUtils && window.eventDetailUtils.showLoading) {
+                window.eventDetailUtils.showLoading(submitBtn);
+            }
+        });
+    </script>
+</div>
+{% endblock %}

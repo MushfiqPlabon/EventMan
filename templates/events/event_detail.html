@@ -3,98 +3,125 @@
 
 {% block title %}{{ event.name }}{% endblock %}
 
+{% block breadcrumbs %}
+    {% include 'includes/breadcrumbs.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
     {% if messages %}
-        <ul class="mb-4">
-            {% for message in messages %}
-                <li class="p-3 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
-                    {{ message }}
-                </li>
-            {% endfor %}
-        </ul>
+        <div role="alert" aria-live="polite">
+            <ul class="mb-4">
+                {% for message in messages %}
+                    <li class="p-3 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}"
+                        role="alert"
+                        aria-label="{% if message.tags == 'success' %}Success message:{% elif message.tags == 'error' %}Error message:{% else %}Information message:{% endif %} {{ message }}">
+                        {{ message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endif %}
 
     <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
         {% if event.image %}
-            <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full md:w-1/3 h-64 object-cover rounded-lg shadow-md">
+            <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full md:w-1/3 h-64 object-cover rounded-lg shadow-md" aria-describedby="event-description">
         {% endif %}
         <div class="flex-1">
-            <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4">{{ event.name }}</h1>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
-                <span class="font-semibold">Date:</span> {{ event.date|date:"M d, Y" }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
-                <span class="font-semibold">Time:</span> {{ event.time|time:"P" }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
-                <span class="font-semibold">Location:</span> {{ event.location }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
-                <span class="font-semibold">Category:</span> {{ event.category.name|default:"N/A" }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 text-lg mb-4">
-                <span class="font-semibold">Organizer:</span> {{ event.organizer.first_name|default:event.organizer.email|default:"N/A" }}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 mb-6">{{ event.description }}</p>
+            <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4" id="event-title">{{ event.name|escape }}</h1>
+            <dl class="text-gray-700 dark:text-gray-300 text-lg space-y-2 mb-6">
+                <div class="flex flex-wrap">
+                    <dt class="font-semibold w-24 flex-shrink-0">Date:</dt>
+                    <dd>{{ event.date|date:"M d, Y" }}</dd>
+                </div>
+                <div class="flex flex-wrap">
+                    <dt class="font-semibold w-24 flex-shrink-0">Time:</dt>
+                    <dd>{{ event.time|time:"P" }}</dd>
+                </div>
+                <div class="flex flex-wrap">
+                    <dt class="font-semibold w-24 flex-shrink-0">Location:</dt>
+                    <dd>{{ event.location|escape }}</dd>
+                </div>
+                <div class="flex flex-wrap">
+                    <dt class="font-semibold w-24 flex-shrink-0">Category:</dt>
+                    <dd>{{ event.category.name|default:"N/A"|escape }}</dd>
+                </div>
+                <div class="flex flex-wrap">
+                    <dt class="font-semibold w-24 flex-shrink-0">Organizer:</dt>
+                    <dd>{{ event.organizer.first_name|default:event.organizer.email|default:"N/A"|escape }}</dd>
+                </div>
+            </dl>
+            <div id="event-description" class="text-gray-700 dark:text-gray-300 mb-6">{{ event.description|escape }}</div>
 
-            <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">Participants ({{ event.participants.count }})</h2>
-            {% if event.participants.all %}
-                <ul class="list-disc list-inside text-gray-700 dark:text-gray-300">
-                    {% for participant in event.participants.all %}
-                        <li>{{ participant.first_name|default:participant.email }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-700 dark:text-gray-300">No participants yet.</p>
-            {% endif %}
+            <section aria-labelledby="participants-heading">
+                <h2 id="participants-heading" class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">Participants ({{ event.participant_count }})</h2>
+                <p class="text-gray-700 dark:text-gray-300">
+                    {% if event.participant_count > 0 %}
+                        This event has {{ event.participant_count }} participants.
+                    {% else %}
+                        No participants yet.
+                    {% endif %}
+                </p>
+            </section>
 
             {% if user.is_authenticated %}
                 {% if user.is_superuser or event.organizer == user %}
-                <div class="mt-8 flex space-x-4">
-                    <a href="{% url 'event_update' event.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                        Edit Event
-                    </a>
-                    <button type="button"
-                            onclick="confirmDeleteWithSpinner('{% url 'event_delete' event.pk %}', 'Event', '{{ event.name }}')"
-                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300"
-                            id="delete-btn">
-                        <span class="button-text">Delete Event</span>
-                        <span class="loading-spinner hidden">Deleting...</span>
-                    </button>
-                </div>
+                <section aria-labelledby="organizer-actions-heading" class="mt-8">
+                    <h3 id="organizer-actions-heading" class="sr-only">Event Management Options</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="{% url 'event_update' event.pk %}"
+                           class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                           aria-label="Edit event '{{ event.name }}'">
+                            Edit Event
+                        </a>
+                        <button type="button"
+                                onclick="confirmDeleteWithSpinner('{% url 'event_delete' event.pk %}', 'Event', '{{ event.name }}')"
+                                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                id="delete-btn"
+                                aria-label="Delete event '{{ event.name }}'">
+                            <span class="button-text">Delete Event</span>
+                            <span class="loading-spinner hidden">Deleting...</span>
+                        </button>
+                    </div>
+                </section>
                 {% else %}
                 <!-- RSVP Button for Participants -->
-                <div class="mt-6">
-                    {% if user in event.participants.all %}
-                        <button type="button"
-                                class="rsvp-cancel bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300"
-                                onclick="handleRsvpConfirmation('{% url 'rsvp_toggle' event.pk %}', 'cancel', '{{ event.name }}')"
-                                aria-label="Cancel your RSVP for {{ event.name }}"
-                                id="rsvp-btn">
-                            <span class="button-text">Cancel RSVP</span>
-                            <span class="loading-spinner hidden">Canceling...</span>
-                        </button>
-                    {% else %}
-                        <button type="button"
-                                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-300"
-                                onclick="handleRsvpConfirmation('{% url 'rsvp_toggle' event.pk %}', 'add', '{{ event.name }}')"
-                                aria-label="RSVP to {{ event.name }}"
-                                id="rsvp-btn">
-                            <span class="button-text">RSVP to Event</span>
-                            <span class="loading-spinner hidden">RSVPing...</span>
-                        </button>
-                    {% endif %}
-                </div>
+                <section aria-labelledby="rsvp-heading" class="mt-6">
+                    <h3 id="rsvp-heading" class="sr-only">Event Registration Options</h3>
+                    <div>
+                        {% if user in event.participants.all %}
+                            <button type="button"
+                                    class="rsvp-cancel bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                    onclick="handleRsvpConfirmation('{% url 'rsvp_toggle' event.pk %}', 'cancel', '{{ event.name }}')"
+                                    aria-label="Cancel your RSVP for {{ event.name }}"
+                                    id="rsvp-btn">
+                                <span class="button-text">Cancel RSVP</span>
+                                <span class="loading-spinner hidden">Canceling...</span>
+                            </button>
+                        {% else %}
+                            <button type="button"
+                                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400"
+                                    onclick="handleRsvpConfirmation('{% url 'rsvp_toggle' event.pk %}', 'add', '{{ event.name }}')"
+                                    aria-label="RSVP to {{ event.name }}"
+                                    id="rsvp-btn">
+                                <span class="button-text">RSVP to Event</span>
+                                <span class="loading-spinner hidden">RSVPing...</span>
+                            </button>
+                        {% endif %}
+                    </div>
+                </section>
                 {% endif %}
             {% else %}
-                <div class="mt-6">
-                    <p class="text-gray-600 dark:text-gray-400">Please <a href="{% url 'account_login' %}" class="text-blue-500 hover:underline">log in</a> to RSVP to this event.</p>
-                </div>
+                <section aria-labelledby="login-required-heading" class="mt-6">
+                    <h3 id="login-required-heading" class="sr-only">Login Required</h3>
+                    <div>
+                        <p class="text-gray-600 dark:text-gray-400">Please <a href="{% url 'account_login' %}" class="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-400">log in</a> to RSVP to this event.</p>
+                    </div>
+                </section>
             {% endif %}
 
             <div class="mt-4">
-                <a href="{% url 'event_list' %}" class="text-blue-500 hover:underline">Back to Event List</a>
+                <a href="{% url 'event_list' %}" class="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-400">Back to Event List</a>
             </div>
         </div>
     </div>
