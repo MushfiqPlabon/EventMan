@@ -87,3 +87,7 @@ This project implements O(1), O(log n), and O(n) time complexity optimizations:
 - O(log n) operations for indexed database lookups
 - Database indexes on all frequently queried fields
 - Signal-based maintenance of denormalized data
+
+## Deployment Note
+
+This application has been configured for deployment on Vercel with proper static file handling.
