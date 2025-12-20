@@ -156,6 +156,17 @@ STORAGES = {
     },
 }
 
+# Additional WhiteNoise settings for production
+if not DEBUG:
+    # Disable WhiteNoise's use of static file finders in production
+    WHITENOISE_USE_FINDERS = False
+    # Disable auto-refresh in production
+    WHITENOISE_AUTOREFRESH = False
+else:
+    # Enable for development
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_AUTOREFRESH = True
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 MEDIA_URL = "/media/"
