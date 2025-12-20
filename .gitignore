@@ -1,21 +1,54 @@
-# .gitignore
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
 venv/
 env/
 .venv/
-.idea/ # For PyCharm users
-.vscode/ # For VS Code users
-.env
+ENV/
 
 # Django
+*.log
+local_settings.py
 db.sqlite3
-/media
-/staticfiles # The folder where collectstatic gathers files
+db.sqlite3-journal
+coverage/
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+.env.dev
+.env.prod
+.env.testing
+.env.staging
 
 # Node.js
 node_modules/
@@ -23,7 +56,52 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-store/
+.yarn-integrity
+.yarn/
+.cache/
+dist/
+build/
+.nuxt/
+coverage/
+.nyc_output/
+
+# Vite
+.vite/
+.temp/
+
+# Bun
+bun.lock
+bun.lockb
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
+
+# Editor temporary files
+*.tmp
+*.bak
+*~
+.#*
+
+# Local configuration
+.settings/
+config/local.json
+
+# Logs
+logs/
+*.log
+
+# Process PID files
+*.pid
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
