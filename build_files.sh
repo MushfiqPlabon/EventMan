@@ -19,6 +19,6 @@ bun run build
 
 # Collect Static Files
 echo "Collecting Static Files..."
-uv run manage.py collectstatic --noinput --clear
+uv run manage.py collectstatic --noinput
 
 echo "Build process completed successfully."
