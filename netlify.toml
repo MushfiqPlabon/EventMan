@@ -1,5 +1,5 @@
 [build]
-  command = "bun install && bun run build && python manage.py collectstatic --noinput"
+  command = "bun install && bun run build && pip install uv && uv sync && uv run manage.py collectstatic --noinput"
   publish = "staticfiles"
 
 [build.environment]
