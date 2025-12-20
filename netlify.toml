@@ -4,16 +4,22 @@
 
 [build.environment]
   PYTHON_VERSION = "3.12"
+  DJANGO_SETTINGS_MODULE = "eventMan.settings"
 
 [functions]
   directory = "netlify/functions"
 
 [[redirects]]
   from = "/static/*"
-  to = "/:splat"
+  to = "/staticfiles/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/media/*"
+  to = "/media/:splat"
   status = 200
 
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/api"
+  to = "/.netlify/functions/server/main"
   status = 200
