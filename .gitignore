@@ -44,11 +44,7 @@ coverage/
 
 # Environment variables
 .env
-.env.local
-.env.dev
-.env.prod
-.env.testing
-.env.staging
+.env.*
 
 # Node.js
 node_modules/
