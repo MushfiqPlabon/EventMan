@@ -8,7 +8,7 @@ export default defineConfig({
 
 	build: {
 		manifest: true,
-		outDir: "static/dist", // Explicitly define output directory relative to project root
+		outDir: "staticfiles/dist", // Output directly to deployment static dir so platforms can serve without relying on collectstatic timing
 		rollupOptions: {
 			input: {
 				// Define named entry points using absolute paths for robustness
