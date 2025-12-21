@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
+from django.core.mail import send_mail
+from django.conf import settings
 from ..decorators import admin_required
 from ..utils.error_handler import ErrorHandlerService
 from ..utils.messages import MessageService
@@ -87,6 +89,36 @@ def dashboard_redirect(request):
 def admin_dashboard(request):
     """Admin Dashboard view."""
     return render(request, "dashboards/admin_dashboard.html")
+
+
+@admin_required
+def send_test_email(request):
+    """Admin-only endpoint to send a test email via configured SMTP after deployment."""
+    if request.method != "POST":
+        messages.error(request, "Invalid request method.")
+        return redirect("admin_dashboard")
+
+    to_email = request.POST.get("to") or request.user.email
+    try:
+        sent = send_mail(
+            subject="EventMan SMTP Test",
+            message=(
+                "This is a test email from EventMan to verify SMTP delivery.\n\n"
+                f"From: {settings.DEFAULT_FROM_EMAIL}\n"
+                f"To: {to_email}\n"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER,
+            recipient_list=[to_email],
+            fail_silently=False,
+        )
+        if sent:
+            messages.success(request, f"Test email sent to {to_email}.")
+        else:
+            messages.error(request, "Test email could not be sent (no error given).")
+    except Exception as e:
+        messages.error(request, f"SMTP error: {str(e)}")
+
+    return redirect("admin_dashboard")
 
 
 def _update_user_role(request):

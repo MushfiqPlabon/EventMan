@@ -10,12 +10,13 @@ from .views.event_crud import (EventCreateView, EventDeleteView,
                                participant_dashboard)
 from .views.main_views import (admin_dashboard, dashboard_redirect, home,
                                manage_user_roles, request_verification_email,
-                               verification_status)
+                               verification_status, send_test_email)
 
 urlpatterns = [
     path("", home, name="home"),
     path("dashboard/", dashboard_redirect, name="dashboard_redirect"),
     path("dashboard/admin/", admin_dashboard, name="admin_dashboard"),
+    path("dashboard/admin/send-test-email/", send_test_email, name="send_test_email"),
     path(
         "dashboard/admin/manage-roles/",
         manage_user_roles,
