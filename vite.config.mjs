@@ -8,7 +8,7 @@ export default defineConfig({
 
 	build: {
 		manifest: true,
-		outDir: "staticfiles/dist", // Output directly to deployment static dir so platforms can serve without relying on collectstatic timing
+		outDir: "static/dist", // Output to Django static dir; WhiteNoise finders and collectstatic will handle serving/copying
 		rollupOptions: {
 			input: {
 				// Define named entry points using absolute paths for robustness

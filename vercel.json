@@ -1,26 +1,23 @@
 {
-	"version": 2,
-	"builds": [
-		{
-			"src": "eventMan/wsgi.py",
-			"use": "@vercel/python",
-			"config": {
-				"runtime": "python3.12"
-			}
-		}
-	],
-	"routes": [
-		{
-			"src": "/static/(.*)",
-			"dest": "/staticfiles/$1"
-		},
-		{
-			"src": "/(.*)",
-			"dest": "eventMan/wsgi.py"
-		}
-	],
-	"env": {
-		"DJANGO_SETTINGS_MODULE": "eventMan.settings",
-		"PYTHONPATH": "$PYTHONPATH:."
-	}
+  "version": 2,
+  "buildCommand": "bash build_files.sh",
+  "builds": [
+    {
+      "src": "eventMan/wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.12"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "eventMan/wsgi.py"
+    }
+  ],
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "eventMan.settings",
+    "PYTHONPATH": "$PYTHONPATH:."
+  }
 }
