@@ -8,15 +8,17 @@ from .views.crud_views import event_detail, event_list, rsvp_toggle
 from .views.event_crud import (EventCreateView, EventDeleteView,
                                EventUpdateView, organizer_dashboard,
                                participant_dashboard)
-from .views.main_views import (admin_dashboard, dashboard_redirect, home,
-                               manage_user_roles, request_verification_email,
-                               verification_status, send_test_email)
+from .views.main_views import (activate, admin_dashboard, dashboard_redirect,
+                               home, manage_user_roles,
+                               request_verification_email, send_test_email,
+                               verification_status)
 
 urlpatterns = [
     path("", home, name="home"),
     path("dashboard/", dashboard_redirect, name="dashboard_redirect"),
     path("dashboard/admin/", admin_dashboard, name="admin_dashboard"),
     path("dashboard/admin/send-test-email/", send_test_email, name="send_test_email"),
+    path("activate/<uidb64>/<token>/", activate, name="activate"),
     path(
         "dashboard/admin/manage-roles/",
         manage_user_roles,

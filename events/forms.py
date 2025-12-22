@@ -70,6 +70,7 @@ class BaseModelForm(forms.ModelForm):
 
 
 class CustomSignupForm(SignupForm):
+    username = forms.CharField(max_length=150, label="Username")
     first_name = forms.CharField(max_length=30, label="First Name")
     last_name = forms.CharField(max_length=30, label="Last Name")
 
@@ -105,6 +106,10 @@ class CustomSignupForm(SignupForm):
             )
 
         # Update first_name and last_name if they exist
+        if "username" in self.fields:
+            self.fields["username"].widget.attrs.update(
+                {"class": COMMON_INPUT_CLASSES, "placeholder": "Username"}
+            )
         if "first_name" in self.fields:
             self.fields["first_name"].widget.attrs.update(
                 {"class": COMMON_INPUT_CLASSES, "placeholder": "First Name"}
@@ -116,6 +121,8 @@ class CustomSignupForm(SignupForm):
 
     def save(self, request):
         user = super(CustomSignupForm, self).save(request)
+        # Set additional fields
+        user.username = self.cleaned_data.get("username", user.username)
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.save()
@@ -123,10 +130,16 @@ class CustomSignupForm(SignupForm):
         # Assign the participant role by default
         from django.contrib.auth.models import Group
 
-        participant_group, created = Group.objects.get_or_create(name="Participant")
+        participant_group, _ = Group.objects.get_or_create(name="Participant")
         user.groups.add(participant_group)
 
         return user
+
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        if not username or len(username.strip()) < 3:
+            raise forms.ValidationError("Username must be at least 3 characters long")
+        return username
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get("first_name")

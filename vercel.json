@@ -3,7 +3,7 @@
   "buildCommand": "bash build_files.sh",
   "builds": [
     {
-      "src": "eventMan/wsgi.py",
+      "src": "eventMan/asgi.py",
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.12"
@@ -13,7 +13,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "eventMan/wsgi.py"
+      "dest": "eventMan/asgi.py"
     }
   ],
   "env": {

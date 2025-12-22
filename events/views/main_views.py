@@ -1,10 +1,16 @@
 from allauth.account.models import EmailAddress
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
-
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from django.views.decorators.http import require_GET
+
 from ..decorators import admin_required
 from ..utils.error_handler import ErrorHandlerService
 from ..utils.messages import MessageService
@@ -89,6 +95,30 @@ def dashboard_redirect(request):
 def admin_dashboard(request):
     """Admin Dashboard view."""
     return render(request, "dashboards/admin_dashboard.html")
+
+
+def activate(request, uidb64, token):
+    """Activate account using Django's default_token_generator."""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = get_object_or_404(User, pk=uid)
+    except Exception:
+        messages.error(request, "Invalid activation link.")
+        return redirect("account_login")
+
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+        # Mark email verified in allauth for consistency
+        email_address = EmailAddress.objects.filter(user=user, email=user.email).first()
+        if email_address and not email_address.verified:
+            email_address.verified = True
+            email_address.save(update_fields=["verified"])
+        messages.success(request, "Your account has been activated. Please sign in.")
+        return redirect("account_login")
+    else:
+        messages.error(request, "Activation link is invalid or expired.")
+        return redirect("account_login")
 
 
 @admin_required
@@ -222,6 +252,42 @@ def request_verification_email(request):
 
 
 @login_required
+@require_GET
+def check_username(request):
+    username = (request.GET.get("u") or "").strip()
+    if not username:
+        return JsonResponse(
+            {"available": False, "message": "Username is required"}, status=400
+        )
+    exists = User.objects.filter(username__iexact=username).exists()
+    return JsonResponse(
+        {
+            "available": not exists,
+            "message": ("Available" if not exists else "Already taken"),
+        }
+    )
+
+
+@require_GET
+def check_email(request):
+    email = (request.GET.get("e") or "").strip()
+    if not email:
+        return JsonResponse(
+            {"available": False, "message": "Email is required"}, status=400
+        )
+    # Unique email enforced; check case-insensitively
+    exists = (
+        EmailAddress.objects.filter(email__iexact=email).exists()
+        or User.objects.filter(email__iexact=email).exists()
+    )
+    return JsonResponse(
+        {
+            "available": not exists,
+            "message": ("Available" if not exists else "Already registered"),
+        }
+    )
+
+
 def verification_status(request):
     """Returns verification status for the current user with optimized DB access."""
     try:

@@ -13,6 +13,12 @@
     "src": "static/src/js/event_detail.js",
     "isEntry": true
   },
+  "static/src/js/form_enhance.js": {
+    "file": "form_enhance_js.js",
+    "name": "form_enhance_js",
+    "src": "static/src/js/form_enhance.js",
+    "isEntry": true
+  },
   "static/src/js/sweetalert.js": {
     "file": "sweetalert_js.js",
     "name": "sweetalert_js",

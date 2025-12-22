@@ -185,11 +185,14 @@ CACHES = {
 }
 
 
-ACCOUNT_LOGIN_METHODS = ["email"]
+# Allow login with either username or email
+# Keep for compatibility if referenced elsewhere
+ACCOUNT_LOGIN_METHODS = {"email", "username"}
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # is_active enforcement via activation token prevents login until activated
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  # Login after email confirmation (default)
 ACCOUNT_SIGNUP_FIELDS = [
+    "username",
     "email*",
     "email2",
     "password1",
@@ -251,7 +254,10 @@ SECURE_BROWSER_XSS_FILTER = (
 )
 X_FRAME_OPTIONS = config("X_FRAME_OPTIONS", default="DENY")
 
-SITE_ID = 1
+SITE_ID = config("SITE_ID", default=1, cast=int)
+SITE_DOMAIN = config(
+    "SITE_DOMAIN", default=None
+)  # Optional: override Sites framework for building absolute URLs
 
 # Debug Toolbar configuration
 if DEBUG:

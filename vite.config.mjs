@@ -16,6 +16,7 @@ export default defineConfig({
 				toggle_js: resolve(__dirname, "static/src/js/toggle.js"),
 				sweetalert_js: resolve(__dirname, "static/src/js/sweetalert.js"),
 				event_detail_js: resolve(__dirname, "static/src/js/event_detail.js"),
+				form_enhance_js: resolve(__dirname, "static/src/js/form_enhance.js"),
 			},
 			output: {
 				// Ensure output filenames are predictable and match Django's static tag expectations

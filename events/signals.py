@@ -2,15 +2,21 @@ import logging
 import queue
 import threading
 
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.models import Site
 from django.core.mail import get_connection, send_mail
 from django.db.models import F
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_bytes
 from django.utils.html import strip_tags
+from django.utils.http import urlsafe_base64_encode
 
 # Import EventParticipant at module level for signal registration
 from .models import (Category, DashboardStats, Event, EventParticipant,
@@ -115,6 +121,40 @@ def send_rsvp_cancellation_notification(sender, instance, **kwargs):
         instance.user, instance.event, is_cancellation=True
     )
     _send_email_async(subject, plain_message, from_email, to_email, html_message)
+
+
+# Activation email helpers (DRY)
+
+
+def _build_activation_link(user):
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    domain = getattr(settings, "SITE_DOMAIN", None) or Site.objects.get_current().domain
+    scheme = "https"
+    path = reverse("activate", args=[uidb64, token])
+    return f"{scheme}://{domain}{path}"
+
+
+def _send_activation_email(user):
+    try:
+        activation_link = _build_activation_link(user)
+        subject = "Activate your EventMan account"
+        message = (
+            f"Hello {user.get_full_name() or user.username},\n\n"
+            "Please click the link below to activate your account:\n"
+            f"{activation_link}\n\n"
+            "If you did not register, please ignore this email."
+        )
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error("Failed to send activation email for user %s: %s", user.pk, e)
 
 
 # Signal-based dashboard counters
@@ -249,6 +289,29 @@ def _handle_date_drift(instance, old_vals, today):
             DashboardStats.objects.filter(stat_date=today).update(
                 past_events=F("past_events") + 1
             )
+
+
+@receiver(post_save, sender=User)
+def ensure_inactive_and_send_activation(sender, instance, created, **kwargs):
+    """Ensure new non-staff users are inactive until activation and send activation email using default_token_generator."""
+    if not created:
+        return
+    user = instance
+    # Keep admins/staff active when created via admin
+    if user.is_staff or user.is_superuser:
+        return
+    # If user is already inactive or missing email, do nothing
+    if not user.email:
+        return
+    # Skip deactivation if this is a seeded/demo user with verified email
+    if EmailAddress.objects.filter(user=user, email=user.email, verified=True).exists():
+        return
+
+    if user.is_active:
+        # Deactivate and send activation link
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+    _send_activation_email(user)
 
 
 @receiver(post_save, sender=Event)
