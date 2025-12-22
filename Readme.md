@@ -23,13 +23,13 @@ EventMan is a comprehensive, modern web-based Event Management System built with
 
 - **Backend:** Python, Django
 - **Authentication:** `django-allauth`
-- **Database:** PostgreSQL (production) / SQLite (development)
+- **Database:** PostgreSQL (production)
 - **Frontend:** HTML, CSS (Tailwind CSS), JavaScript
 - **Frontend Libraries:** SweetAlert2
 - **ASGI Server:** Uvicorn
 - **Frontend Tooling:** Vite
 - **Package Management:** Bun
-- **Deployment:** Render.com
+- **Deployment:** Vercel, Neon.tech (PostgreSQL)
 
 ## Getting Started
 
@@ -62,23 +62,23 @@ EventMan is a comprehensive, modern web-based Event Management System built with
 
 6. **Apply database migrations:**
    ```bash
-   uv run manage.py makemigrations
-   uv run manage.py migrate
+   uv run --env-file .env python manage.py makemigrations
+   uv run --env-file .env python manage.py migrate
    ```
 
 7. **Create a superuser:**
    ```bash
-   uv run manage.py createsuperuser
+   uv run --env-file .env python manage.py createsuperuser
    ```
 
 8. **Run the development server:**
    ```bash
-   uv run manage.py runserver
+   uv run --env-file .env python manage.py runserver
    ```
 
 ## Deployment Notes
 
-For deployment on Render.com, PostgreSQL must be used as SQLite databases are not persistent. Ensure your production environment sets the `DATABASE_URL` environment variable to point to a PostgreSQL database.
+For deployment on Vercel, PostgreSQL must be used as SQLite databases are not persistent. Ensure your production environment sets the `DATABASE_URL` environment variable to point to a PostgreSQL database.
 
 ## Performance & Optimization
 
